@@ -121,7 +121,10 @@ async def lyrics(client: Bot, callback: CallbackQuery):
 
     if len(lyrics) <= 4096:
         callback_data = "song#" + "#".join(data[2:])
-        button = [[InlineKeyboardButton('🔙', callback_data=callback_data)]]
+        button = [
+            [InlineKeyboardButton('🔙 Back', callback_data=callback_data)],
+            [InlineKeyboardButton('Close ❌', callback_data="close")]
+        ]
         try:
             await callback.answer()
             await callback.message.edit(lyrics, reply_markup=InlineKeyboardMarkup(button))

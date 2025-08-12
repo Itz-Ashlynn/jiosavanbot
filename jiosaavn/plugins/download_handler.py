@@ -217,6 +217,14 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         # Update database
         await client.db.update_song(song_id, quality, song_file.chat.id, song_file.id)
         
+        # Delete the audio file immediately after successful upload to save space
+        try:
+            if os.path.exists(audio):
+                os.remove(audio)
+                logger.debug(f"Deleted audio file: {audio}")
+        except Exception as e:
+            logger.debug(f"Could not delete audio file {audio}: {e}")
+        
         # Delete the temporary message after successful upload
         try:
             await msg.delete()

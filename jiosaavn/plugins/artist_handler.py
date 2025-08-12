@@ -95,11 +95,13 @@ async def artist(client: Bot, callback: CallbackQuery):
     navigation_buttons = []
     if page_no > 1:
         navigation_buttons.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"artist#{artist_id}#{page_no-1}"))
-    if total_results > 10 * page_no:
+    if total_results > 20 * page_no:
         navigation_buttons.append(InlineKeyboardButton("➡️ Next", callback_data=f"artist#{artist_id}#{page_no+1}"))
     if navigation_buttons:
         buttons.append(navigation_buttons)
 
+    # Add control buttons
+    buttons.append([InlineKeyboardButton('Close ❌', callback_data="close")])
     # Determine the appropriate back button
     back_callback = f"search#{back_type}" if back_type else "search#artists"
     buttons.append([InlineKeyboardButton("🔙 Back", callback_data=back_callback)])
