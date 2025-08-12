@@ -178,26 +178,70 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     else:
         raise ValueError(f"Invalid song response format for ID: {song_id}. Response: {song_response}")
 
-    # Extract metadata
-    title = song_data.get("title", "Unknown")
-    title = html.unescape(title)
+    # Extract metadata - handle both official API and fallback API formats
+    title = song_data.get("title") or song_data.get("name", "Unknown")
+    title = html.unescape(str(title))
     formatted_title = title.replace(" ", "-")
+    
+    # Handle language field
     language = song_data.get("language", "Unknown")
+    
+    # Handle different API response formats
     more_info = song_data.get("more_info", {})
-    album = more_info.get("album", "Unknown")
-    artist_map = more_info.get("artistMap", {})
-    artists = artist_map.get("artists", [])
-
+    
+    # Extract album info - fallback API has direct album field
+    album = more_info.get("album") or song_data.get("album", {})
+    if isinstance(album, dict):
+        album = album.get("name", "Unknown")
+    elif not isinstance(album, str):
+        album = "Unknown"
+    
+    # Extract artists - handle both formats
+    artists = []
+    if more_info.get("artistMap", {}).get("artists"):
+        # Official API format
+        artists = more_info["artistMap"]["artists"]
+    elif song_data.get("artists"):
+        # Fallback API format
+        artists = song_data["artists"]
+    
     def get_artist_by_role(role: str) -> str:
         return ", ".join(artist.get("name") for artist in artists if artist.get("role") == role)
-
-    singers = get_artist_by_role("singer")
-    release_date = more_info.get("release_date")
-    duration = int(more_info.get("duration", "0"))
-    release_year = song_data.get("year")
+    
+    # Extract performers/singers
+    singers = get_artist_by_role("singer") or get_artist_by_role("primary_artists")
+    if not singers and artists:
+        # Fallback: use first artist or all artists
+        singers = ", ".join(artist.get("name", "") for artist in artists[:3])  # Limit to first 3
+    
+    # Extract release info
+    release_date = more_info.get("release_date") or song_data.get("releaseDate")
+    release_year = song_data.get("year") or (release_date.split("-")[0] if release_date else "")
+    
+    # Extract duration - handle string and int formats
+    duration_raw = more_info.get("duration") or song_data.get("duration", "0")
+    try:
+        duration = int(duration_raw) if duration_raw else 0
+    except (ValueError, TypeError):
+        duration = 0
+    
+    # Extract URLs
     album_url = more_info.get("album_url", "")
-    image_url = song_data.get("image", "").replace("150x150", "500x500")
-    song_url = song_data.get('perma_url', f"https://jiosaavn.com/songs/{formatted_title}/{song_id}")
+    song_url = song_data.get('perma_url') or song_data.get('url', f"https://jiosaavn.com/songs/{formatted_title}/{song_id}")
+    
+    # Handle image URL - different formats between APIs
+    image_url = ""
+    image_data = song_data.get("image", "")
+    if isinstance(image_data, str):
+        # Official API format - direct string
+        image_url = image_data.replace("150x150", "500x500") if image_data else ""
+    elif isinstance(image_data, list) and len(image_data) > 0:
+        # Fallback API format - list of image objects
+        # Get the highest quality image (usually the last one)
+        image_url = image_data[-1].get("url", "") if image_data[-1] else ""
+    elif isinstance(image_data, dict):
+        # Some APIs return image as dict
+        image_url = image_data.get("url", "")
 
     # Create caption
     text_data = [
@@ -240,10 +284,50 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
                 await file.write(await response.read())
 
     try:
-        audio = await Jiosaavn().download_song(song_id=song_id, bitrate=bitrate, download_location=file_name)
+        # Try to get download URL from song data
+        download_url = None
+        
+        # Check if song has downloadUrl field (fallback API format)
+        if song_data.get("downloadUrl"):
+            download_urls = song_data["downloadUrl"]
+            if isinstance(download_urls, list):
+                # Find the appropriate quality
+                for url_obj in download_urls:
+                    if str(bitrate) in url_obj.get("quality", ""):
+                        download_url = url_obj.get("url")
+                        break
+                # Fallback to highest quality if exact bitrate not found
+                if not download_url and download_urls:
+                    download_url = download_urls[-1].get("url")
+        
+        if download_url:
+            # Direct download from URL
+            logger.info(f"Direct downloading from URL for {title}")
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': '*/*',
+                'Referer': 'https://www.jiosaavn.com/',
+            }
+            
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(download_url) as response:
+                    response.raise_for_status()
+                    async with aiofiles.open(file_name, "wb") as file:
+                        while True:
+                            chunk = await response.content.read(4 * 1024 * 1024)  # 4 MB chunks
+                            if not chunk:
+                                break
+                            await file.write(chunk)
+            audio = file_name
+        else:
+            # Fallback to official API download
+            logger.info(f"Using official API download for {title}")
+            audio = await Jiosaavn().download_song(song_id=song_id, bitrate=bitrate, download_location=file_name)
+        
         if not audio or not os.path.exists(file_name):
             await safe_edit(msg, f"Failed to download {title}")
             return
+            
     except Exception as e:
         logger.error(f"Error downloading song {title}: {e}")
         await safe_edit(msg, f"Failed to download {title}: {str(e)}")

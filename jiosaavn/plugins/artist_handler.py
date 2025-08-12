@@ -77,9 +77,10 @@ async def artist(client: Bot, callback: CallbackQuery):
     buttons = []
     for song in songs:
         try:
-            song_title = song.get("title", "")
-            song_title = html.unescape(song_title)
-            button_label = f"🎙 {song_title}"
+            # Handle different title fields between APIs
+            song_title = song.get("title") or song.get("name", "")
+            song_title = html.unescape(str(song_title))
+            button_label = f"🎙 {song_title}" if song_title else f"🎙 Song"
             
             # Try to get song ID from multiple possible fields
             song_id = song.get("id")

@@ -67,17 +67,26 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
     buttons = []
     for song in songs:
         try:
-            song_title = html.unescape(song.get("title", ""))
+            # Handle different title fields between APIs
+            song_title = song.get("title") or song.get("name", "")
+            song_title = html.unescape(str(song_title))
+            
             # Try to get song ID from multiple possible fields
             song_id = song.get("id")
             if not song_id and song.get("perma_url"):
                 song_id = song.get("perma_url", "").rsplit("/", 1)[1]
             
-            if song_id:
+            if song_id and song_title:
                 callback_data = f"song#{song_id}#{item_id}#{search_type}"
                 if back_type:
                     callback_data += f"#{back_type}"
                 buttons.append([InlineKeyboardButton(f"🎙 {song_title}", callback_data=callback_data)])
+            elif song_id:
+                # Fallback if no title
+                callback_data = f"song#{song_id}#{item_id}#{search_type}"
+                if back_type:
+                    callback_data += f"#{back_type}"
+                buttons.append([InlineKeyboardButton(f"🎙 Song {song_id}", callback_data=callback_data)])
         except (IndexError, AttributeError) as e:
             logger.debug(f"Error processing song: {e}")
             pass
