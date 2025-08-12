@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  jiosaavn-bot:
+    build: .
+    container_name: jiosaavn-bot
+    restart: unless-stopped
+    ports:
+      - "${PORT:-80}:${PORT:-80}"
+    environment:
+      # Telegram Bot Configuration
+      - API_ID=${API_ID}
+      - API_HASH=${API_HASH}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - OWNER_ID=${OWNER_ID}
+      
+      # Database Configuration
+      - DATABASE_URL=${DATABASE_URL}
+      
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=${PORT:-80}
+    
+    volumes:
+      # Mount logs directory for persistence
+      - ./logs:/app/logs
+      # Mount downloads directory (optional)
+      - ./downloads:/app/downloads
+    
+    networks:
+      - jiosaavn-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-80}/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: MongoDB service for local development
+  mongodb:
+    image: mongo:6.0
+    container_name: jiosaavn-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-password}
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - jiosaavn-network
+    profiles:
+      - local  # Only start with --profile local
+
+volumes:
+  mongodb_data:
+
+networks:
+  jiosaavn-network:
+    driver: bridge

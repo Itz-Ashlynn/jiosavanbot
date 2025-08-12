@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JioSaavn Bot - Music at Your Fingertips</title>
+    <meta name="description" content="Advanced JioSaavn Telegram Bot for downloading high-quality music, playlists, and albums">
+    <meta name="keywords" content="JioSaavn, Telegram Bot, Music Download, Songs, Playlists, Albums">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎵%3C/text%3E%3C/svg%3E">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="music-waves">
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+                <div class="wave"></div>
+            </div>
+            <h2>Loading JioSaavn Bot...</h2>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-music"></i>
+                <span>JioSaavn Bot</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#stats" class="nav-link">Statistics</a>
+                <a href="#contact" class="nav-link">Contact</a>
+                <a href="https://t.me/your_bot_username" class="nav-link btn-primary">Start Bot</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="floating-notes">
+                <i class="fas fa-music"></i>
+                <i class="fas fa-headphones"></i>
+                <i class="fas fa-microphone"></i>
+                <i class="fas fa-guitar"></i>
+                <i class="fas fa-drum"></i>
+            </div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="highlight">JioSaavn Bot</span><br>
+                    Music at Your Fingertips
+                </h1>
+                <p class="hero-description">
+                    Experience the ultimate music downloading bot for Telegram. Download high-quality songs, 
+                    playlists, and albums directly from JioSaavn with just a few taps.
+                </p>
+                <div class="hero-buttons">
+                    <a href="https://t.me/your_bot_username" class="btn btn-primary">
+                        <i class="fab fa-telegram"></i>
+                        Start Bot
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="10000">0</span>
+                        <span class="stat-label">Active Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="50000">0</span>
+                        <span class="stat-label">Songs Downloaded</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="99">0</span>
+                        <span class="stat-label">Uptime %</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Powerful Features</h2>
+                <p>Everything you need for the ultimate music experience</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>High-Quality Downloads</h3>
+                    <p>Download music in multiple quality options: 48kbps, 96kbps, 160kbps, and 320kbps for crystal clear audio.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Smart Search</h3>
+                    <p>Advanced search functionality to find songs, albums, playlists, and artists instantly.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <h3>Playlist Support</h3>
+                    <p>Download entire playlists and albums with a single command. Save time and effort.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <h3>Customizable Settings</h3>
+                    <p>Personalize your experience with custom quality preferences and download types.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Lightning Fast</h3>
+                    <p>Optimized for speed with concurrent downloads and efficient processing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is protected with advanced security measures and privacy-first approach.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="stats" class="statistics">
+        <div class="container">
+            <div class="section-header">
+                <h2>Live Statistics</h2>
+                <p>Real-time insights into bot performance and usage</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number loading-stat" data-api="users">Loading...</div>
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12.5%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number loading-stat" data-api="downloads">Loading...</div>
+                        <div class="stat-label">Downloads Today</div>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+8.2%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number">99.9%</div>
+                        <div class="stat-label">Uptime</div>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Stable</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-number loading-stat" data-api="songs">Loading...</div>
+                        <div class="stat-label">Songs Available</div>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Growing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Distribution Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>Quality Preferences</h3>
+                    <p>User preferences for audio quality</p>
+                </div>
+                <div class="quality-chart">
+                    <div class="quality-bar">
+                        <div class="quality-label">320kbps</div>
+                        <div class="quality-progress">
+                            <div class="quality-fill" data-width="65"></div>
+                        </div>
+                        <div class="quality-percentage">65%</div>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-label">160kbps</div>
+                        <div class="quality-progress">
+                            <div class="quality-fill" data-width="25"></div>
+                        </div>
+                        <div class="quality-percentage">25%</div>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-label">96kbps</div>
+                        <div class="quality-progress">
+                            <div class="quality-fill" data-width="8"></div>
+                        </div>
+                        <div class="quality-percentage">8%</div>
+                    </div>
+                    <div class="quality-bar">
+                        <div class="quality-label">48kbps</div>
+                        <div class="quality-progress">
+                            <div class="quality-fill" data-width="2"></div>
+                        </div>
+                        <div class="quality-percentage">2%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Commands Section -->
+    <section id="commands" class="commands">
+        <div class="container">
+            <div class="section-header">
+                <h2>Available Commands</h2>
+                <p>Everything you need to know to get started</p>
+            </div>
+            <div class="commands-grid">
+                <div class="command-card">
+                    <div class="command-syntax">/start</div>
+                    <div class="command-description">Initialize the bot and get welcome message</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">/settings</div>
+                    <div class="command-description">Configure quality and download preferences</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">/help</div>
+                    <div class="command-description">Get detailed help and usage instructions</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">/about</div>
+                    <div class="command-description">Learn about the bot and its features</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">Song Name</div>
+                    <div class="command-description">Send any song name to search and download</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">Playlist URL</div>
+                    <div class="command-description">Send JioSaavn playlist URL to download all songs</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get in Touch</h2>
+                <p>Have questions or need support? We're here to help!</p>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <h3>Telegram</h3>
+                    <p>Join our community for updates and support</p>
+                    <a href="https://t.me/Ashlynn_Repository" class="contact-link">@Ashlynn_Repository</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h3>GitHub</h3>
+                    <p>Contribute to the project or report issues</p>
+                    <a href="https://github.com/Itz-Ashlynn/jiosavanbot" class="contact-link">View Repository</a>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Developer</h3>
+                    <p>Created and maintained by Ashlynn</p>
+                    <a href="https://t.me/Ashlynn_Repository" class="contact-link">Contact Developer</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <i class="fas fa-music"></i>
+                        <span>JioSaavn Bot</span>
+                    </div>
+                    <p>The ultimate Telegram bot for downloading high-quality music from JioSaavn.</p>
+                    <div class="social-links">
+                        <a href="https://t.me/Ashlynn_Repository"><i class="fab fa-telegram"></i></a>
+                        <a href="https://github.com/Itz-Ashlynn/jiosavanbot"><i class="fab fa-github"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#stats">Statistics</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/Itz-Ashlynn/jiosavanbot">Source Code</a></li>
+                        <li><a href="https://t.me/Ashlynn_Repository">Support</a></li>
+                        <li><a href="#commands">Commands</a></li>
+                        <li><a href="/api/docs">API Docs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#privacy">Privacy Policy</a></li>
+                        <li><a href="#terms">Terms of Service</a></li>
+                        <li><a href="#disclaimer">Disclaimer</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 JioSaavn Bot. Created by <a href="https://t.me/Ashlynn_Repository">Ashlynn</a>. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+</html>
