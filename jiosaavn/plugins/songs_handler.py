@@ -53,6 +53,12 @@ async def handle_song_callback(client: Bot, callback: CallbackQuery):
     elif not isinstance(album, str):
         album = "Unknown"
     
+    # Extract album URL - handle both formats
+    album_url = more_info.get("album_url", "")
+    if not album_url and isinstance(album, str) and album != "Unknown":
+        # Fallback: construct album URL if not provided
+        album_url = f"https://jiosaavn.com/album/{album.lower().replace(' ', '-')}"
+    
     # Extract artists - handle both formats
     artists = []
     if more_info.get("artistMap", {}).get("artists"):
@@ -88,9 +94,22 @@ async def handle_song_callback(client: Bot, callback: CallbackQuery):
     
     # Extract performers/singers - handle both formats
     music = more_info.get("music") or get_artist_by_role("music")
-    singers = get_artist_by_role("singer") or get_artist_by_role("primary_artists")
+    
+    # Extract singers - prioritize singer role, then primary_artists
+    singers = get_artist_by_role("singer")
+    if not singers:
+        # Try primary_artists if no specific singers found
+        primary_artists = []
+        for artist in artists:
+            if isinstance(artist, dict) and artist.get("role") == "primary_artists":
+                name = artist.get("name", "")
+                if name:
+                    primary_artists.append(name)
+        if primary_artists:
+            singers = ", ".join(primary_artists)
+    
+    # Final fallback: use first few artists if still no singers
     if not singers and artists:
-        # Fallback: use first artist or all artists
         artist_names = []
         for artist in artists[:3]:  # Limit to first 3
             if isinstance(artist, dict):
@@ -126,7 +145,7 @@ async def handle_song_callback(client: Bot, callback: CallbackQuery):
 
     text_data = [
         f"**🎧 Song:** [{title}]({song_url})" if title else '',
-        f"**📚 Album:** [{album}]({album_url})" if album else '',
+        f"**📚 Album:** [{album}]({album_url})" if album and album_url else f"**📚 Album:** {album}" if album else '',
         f"**🎵 Music:** {music}" if music else '',
         f"**▶️ Plays:** {play_count:,}" if play_count else '',
         f"**👨‍🎤 Singers:** {singers}" if singers else '',

@@ -259,6 +259,10 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     
     # Extract URLs
     album_url = more_info.get("album_url", "")
+    if not album_url and isinstance(album, str) and album != "Unknown":
+        # Fallback: construct album URL if not provided
+        album_url = f"https://jiosaavn.com/album/{album.lower().replace(' ', '-')}"
+    
     song_url = song_data.get('perma_url') or song_data.get('url', f"https://jiosaavn.com/songs/{formatted_title}/{song_id}")
     
     # Handle image URL - different formats between APIs
@@ -279,7 +283,7 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     text_data = [
         f"[\u2063]({image_url})"
         f"**🎧 Song:** [{title}]({song_url})" if title else '',
-        f"**📚 Album:** [{album}]({album_url})" if album else '',
+        f"**📚 Album:** [{album}]({album_url})" if album and album_url else f"**📚 Album:** {album}" if album else '',
         f"**📰 Language:** {language}" if language else '',
         f"**📆 Release Date:** __{release_date}__" if release_date else '',
         f"**📆 Release Year:** __{release_year}__" if not release_date and release_year else '',
