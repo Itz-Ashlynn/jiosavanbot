@@ -71,7 +71,12 @@ async def search(client: Bot, message: Message|CallbackQuery):
                 title = html.unescape(title)
                 album = data.get("album")
                 item_type = data.get("type")
-                item_id = data.get("url", "/").rsplit("/", 1)[1]
+                # Extract ID from URL or use direct ID field
+                url = data.get("url", "")
+                if url and "/" in url:
+                    item_id = url.rsplit("/", 1)[1]
+                else:
+                    item_id = data.get("id", "unknown")
                 type_emoji_map = {
                     "song": "🎙",
                     "album": "📚",
@@ -83,11 +88,11 @@ async def search(client: Bot, message: Message|CallbackQuery):
                 emoji = type_emoji_map[item_type]
                 button_text = f"{emoji} {title} from {album}" if album else f"{emoji} {title}"
                 
-                # For artists in topquery, include the artist name in the callback data
+                # For artists in topquery, store the name in cache
                 if item_type == "artist":
-                    import base64
-                    artist_name_encoded = base64.b64encode(title.encode('utf-8')).decode('utf-8')
-                    callback_data = f"{item_type}#{item_id}#{artist_name_encoded}#topquery"
+                    from jiosaavn.utils import artist_cache
+                    artist_cache.set(item_id, title)
+                    callback_data = f"{item_type}#{item_id}#topquery"
                 else:
                     callback_data = f"{item_type}#{item_id}#topquery"
                 buttons.append([InlineKeyboardButton(text=button_text, callback_data=callback_data)])
@@ -110,7 +115,12 @@ async def search(client: Bot, message: Message|CallbackQuery):
         # Iterate over each result
         for result in response.get("results", []):
             # Extract relevant information from the result
-            item_id = result.get("perma_url", "/").rsplit("/", 1)[1]
+            # For some items, use 'id' field if perma_url extraction fails
+            perma_url = result.get("perma_url", "")
+            if perma_url and "/" in perma_url:
+                item_id = perma_url.rsplit("/", 1)[1]
+            else:
+                item_id = result.get("id", "unknown")
             title = result.get("title", "unknown")
             title = html.unescape(title)
             result_type = result.get("type", "unknown")
@@ -130,12 +140,11 @@ async def search(client: Bot, message: Message|CallbackQuery):
             # Get the button label and callback data for the current result type
             button_label = button_label_map.get(result_type)
             if button_label:
-                # For artists, include the artist name in the callback data
+                # For artists, store the name in cache to avoid callback data size limits
                 if result_type == "artist":
-                    # Use base64 encoding to handle special characters in artist names
-                    import base64
-                    artist_name_encoded = base64.b64encode(artist.encode('utf-8')).decode('utf-8')
-                    callback_data = f"{result_type}#{item_id}#{artist_name_encoded}"
+                    from jiosaavn.utils import artist_cache
+                    artist_cache.set(item_id, artist)
+                    callback_data = f"{result_type}#{item_id}"
                 else:
                     callback_data = f"{result_type}#{item_id}"
                 buttons.append([InlineKeyboardButton(text=button_label, callback_data=callback_data)])

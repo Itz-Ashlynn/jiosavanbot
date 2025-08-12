@@ -23,30 +23,20 @@ async def artist(client: Bot, callback: CallbackQuery):
     artist_name = None
     
     if len(data) >= 3:
-        # Check if we have artist name (base64 encoded) in position 2
+        # Check if the third parameter is a page number or a search type
         try:
-            import base64
-            artist_name = base64.b64decode(data[2]).decode('utf-8')
-            logger.debug(f"Artist handler: Decoded artist name: {artist_name}")
-            
-            # Check if there's more data after the artist name
-            if len(data) >= 4:
-                try:
-                    page_no = int(data[3])
-                    logger.debug(f"Artist handler: Using page number {page_no}")
-                except ValueError:
-                    back_type = data[3]
-                    page_no = 1
-                    logger.debug(f"Artist handler: Using back_type {back_type}")
-        except Exception:
-            # If decoding fails, treat as old format
-            try:
-                page_no = int(data[2])
-                logger.debug(f"Artist handler: Using page number {page_no} (old format)")
-            except ValueError:
-                back_type = data[2]
-                page_no = 1
-                logger.debug(f"Artist handler: Using back_type {back_type} (old format)")
+            page_no = int(data[2])
+            logger.debug(f"Artist handler: Using page number {page_no}")
+        except ValueError:
+            # If it's not a number, it's likely 'topquery' or similar
+            back_type = data[2]
+            page_no = 1
+            logger.debug(f"Artist handler: Using back_type {back_type}, defaulting to page 1")
+    
+    # Get artist name from cache
+    from jiosaavn.utils import artist_cache
+    artist_name = artist_cache.get(artist_id)
+    logger.debug(f"Retrieved artist name from cache: {artist_name}")
     
     logger.debug(f"Artist handler called with: artist_id={artist_id}, page_no={page_no}, back_type={back_type}")
     msg = callback.message

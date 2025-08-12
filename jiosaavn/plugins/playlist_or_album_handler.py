@@ -34,9 +34,16 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
                                              f"• {search_type.title()} removed from JioSaavn\n"
                                              f"• Temporary API issues")
         
-        if not response.get("list"):
+        # Check for songs in different possible fields
+        songs = response.get("list") or response.get("songs") or []
+        if not songs:
             return await callback.message.edit(f"**The {search_type} exists but contains no songs.**\n\n"
                                              f"The {search_type} might be empty or the songs are not available in your region.")
+        
+        # Ensure 'list' field exists for compatibility with rest of code
+        if not response.get("list") and response.get("songs"):
+            response["list"] = response["songs"]
+            response["list_count"] = len(response["songs"])
     except RuntimeError as e:
         logger.error(f"RuntimeError in playlist/album handler: {e}")
         traceback.print_exc()

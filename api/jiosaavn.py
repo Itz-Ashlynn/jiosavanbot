@@ -295,7 +295,20 @@ class Jiosaavn:
         # Debug logging to understand response structure
         import logging
         logger = logging.getLogger(__name__)
-        logger.debug(f"Raw API response for {search_type}: {response}")
+        logger.debug(f"Raw API response for {search_type} (token={token}): keys={list(response.keys()) if response else 'None'}")
+        
+        # Log more details for debugging
+        if response:
+            if 'list' in response:
+                logger.debug(f"Response has 'list' with {len(response['list'])} items")
+            if 'songs' in response:
+                logger.debug(f"Response has 'songs' with {len(response['songs'])} items")
+            if 'title' in response:
+                logger.debug(f"Response title: {response['title']}")
+            if 'error' in response:
+                logger.debug(f"Response has error: {response['error']}")
+        else:
+            logger.debug("Response is None or empty")
 
         # Handle different response structures for playlists vs albums
         if search_type == "playlist":
