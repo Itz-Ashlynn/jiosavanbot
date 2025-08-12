@@ -291,11 +291,11 @@ class Jiosaavn:
                 response['topSongs'] = response["topSongs"][start_index:end_index]
                 return response
 
-        # Try fallback API for better artist support
+        # Use fallback API directly for better artist support since it's more reliable
         if artist_id:
             import logging
             logger = logging.getLogger(__name__)
-            logger.debug(f"Trying fallback API for artist {artist_id}")
+            logger.info(f"🎤 Using fallback API directly for artist {artist_id}")
             fallback_response = await self.fallback.get_artist_songs(artist_id, page_no, page_size)
             
             if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
@@ -425,8 +425,16 @@ class Jiosaavn:
         else:
             logger.warning(f"❌ Official API returned None/empty response")
         
-        # Try fallback API if original fails or returns empty
-        if not response or (not response.get("list") and not response.get("songs")):
+        # For playlists and artists, use fallback API directly since it's more reliable
+        # The logs show official API returns empty list even when playlist exists
+        should_use_fallback = (
+            not response or 
+            (not response.get("list") and not response.get("songs")) or
+            (response.get("list") == "" or response.get("list") == []) or
+            (search_type in ["playlist", "album"] and response.get("list_count") == "0")
+        )
+        
+        if should_use_fallback:
             import logging
             logger = logging.getLogger(__name__)
             logger.info(f"🔄 Official API failed for {search_type} {token}, trying fallback API...")
@@ -456,7 +464,9 @@ class Jiosaavn:
                             "follower_count": 0  # Not provided in this API
                         }
                     }
-                    logger.debug(f"Fallback API returned playlist with {len(songs)} songs")
+                    logger.info(f"✅ Fallback API SUCCESS: Converted playlist '{data.get('name')}' with {len(songs)} songs")
+                    # Return immediately after successful fallback conversion
+                    return response
             
             elif search_type == "album":
                 fallback_response = await self.fallback.get_album(token, original_url)
@@ -483,7 +493,9 @@ class Jiosaavn:
                             "album_url": data.get('url', f"https://www.jiosaavn.com/album/{token}")
                         }
                     }
-                    logger.debug(f"Fallback API returned album with {len(songs)} songs")
+                    logger.info(f"✅ Fallback API SUCCESS: Converted album '{data.get('name')}' with {len(songs)} songs")
+                    # Return immediately after successful fallback conversion
+                    return response
         
         if not response:
             return None

@@ -49,12 +49,47 @@ async def download(client: Bot, message: Message|CallbackQuery):
             original_url = message.text
 
         while True:
-            response = await Jiosaavn().get_playlist_or_album(
-                album_id=album_id, 
-                playlist_id=playlist_id, 
-                page_no=page_no,
-                original_url=original_url
-            )
+            # For direct URL access, prioritize fallback API
+            jiosaavn = Jiosaavn()
+            if original_url:
+                # Try fallback API first for URL-based access
+                if search_type == "playlist":
+                    fallback_response = await jiosaavn.fallback.get_playlist(item_id, original_url)
+                elif search_type == "album":
+                    fallback_response = await jiosaavn.fallback.get_album(item_id, original_url)
+                else:
+                    fallback_response = None
+                
+                if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
+                    # Convert fallback response to expected format
+                    data = fallback_response['data']
+                    songs = data.get('songs', [])
+                    
+                    if songs:
+                        # Create compatible response
+                        response = {
+                            "list": songs,
+                            "title": data.get('name', 'Unknown'),
+                            "list_count": len(songs)
+                        }
+                    else:
+                        response = None
+                else:
+                    # Fallback to original API
+                    response = await jiosaavn.get_playlist_or_album(
+                        album_id=album_id, 
+                        playlist_id=playlist_id, 
+                        page_no=page_no,
+                        original_url=original_url
+                    )
+            else:
+                # Use original method for non-URL access
+                response = await jiosaavn.get_playlist_or_album(
+                    album_id=album_id, 
+                    playlist_id=playlist_id, 
+                    page_no=page_no,
+                    original_url=original_url
+                )
             
             if not response or not response.get("list"):
                 break
