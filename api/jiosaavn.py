@@ -394,13 +394,18 @@ class Jiosaavn:
                 elif artist_info.get('image') and isinstance(artist_info['image'], str):
                     image_url = artist_info['image']
                 
+                # Apply pagination to items
+                start_index = (page_no - 1) * page_size
+                end_index = start_index + page_size
+                paginated_items = all_items[start_index:end_index]
+                
                 artist_response = {
                     "artistId": artist_id,
                     "name": artist_info.get('name', artist_name or 'Unknown'),
                     "image": image_url,
                     "type": "artist",
-                    "topSongs": all_items,  # Include both songs and albums
-                    "count": len(all_items),
+                    "topSongs": paginated_items,  # Include both songs and albums
+                    "count": len(all_items),  # Total count, not paginated count
                     "follower_count": str(artist_info.get('followerCount', 0)),
                     "fan_count": str(artist_info.get('fanCount', 0)),
                     "is_verified": artist_info.get('isVerified', False),
@@ -561,11 +566,16 @@ class Jiosaavn:
                         # Get the highest quality image
                         image_url = data['image'][-1].get('url', '')
                     
+                    # Apply pagination to songs
+                    start_index = (page_no - 1) * page_size
+                    end_index = start_index + page_size
+                    paginated_songs = songs[start_index:end_index]
+                    
                     response = {
                         "id": numeric_id or token,
                         "title": data.get('name', 'Unknown Playlist'),
                         "image": image_url,
-                        "list": songs,
+                        "list": paginated_songs,
                         "list_count": data.get('songCount', len(songs)),
                         "perma_url": data.get('url', f"https://www.jiosaavn.com/featured/{token}"),
                         "more_info": {
@@ -601,11 +611,16 @@ class Jiosaavn:
                         # Get the highest quality image
                         image_url = data['image'][-1].get('url', '')
                     
+                    # Apply pagination to songs
+                    start_index = (page_no - 1) * page_size
+                    end_index = start_index + page_size
+                    paginated_songs = songs[start_index:end_index]
+                    
                     response = {
                         "id": numeric_id or token,
                         "title": data.get('name', 'Unknown Album'),
                         "image": image_url,
-                        "list": songs,
+                        "list": paginated_songs,
                         "list_count": data.get('songCount', len(songs)),
                         "perma_url": data.get('url', f"https://www.jiosaavn.com/album/{token}"),
                         "year": data.get('releaseDate', '').split('-')[0] if data.get('releaseDate') else '',

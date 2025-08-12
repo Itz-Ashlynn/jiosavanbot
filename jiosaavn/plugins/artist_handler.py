@@ -111,11 +111,15 @@ async def artist(client: Bot, callback: CallbackQuery):
             logger.debug(f"Error processing artist song: {e}")
             pass
 
+    # Calculate pagination properly
+    songs_per_page = 10  # Number of songs shown per page
+    total_pages = (total_results + songs_per_page - 1) // songs_per_page  # Ceiling division
+    
     # Add navigation buttons only if we have multiple pages
     navigation_buttons = []
     if page_no > 1:
         navigation_buttons.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"artist#{artist_id}#{page_no-1}"))
-    if total_results > 20 * page_no:
+    if page_no < total_pages:
         navigation_buttons.append(InlineKeyboardButton("➡️ Next", callback_data=f"artist#{artist_id}#{page_no+1}"))
     if navigation_buttons:
         buttons.append(navigation_buttons)

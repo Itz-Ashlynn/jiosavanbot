@@ -105,10 +105,14 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
             logger.debug(f"Error processing song: {e}")
             pass
 
+    # Calculate pagination properly
+    songs_per_page = 10  # Number of songs shown per page
+    total_pages = (total_results + songs_per_page - 1) // songs_per_page  # Ceiling division
+    
     navigation_buttons = []
     if page_no > 1:
         navigation_buttons.append(InlineKeyboardButton("⬅️", callback_data=f"{search_type}#{item_id}#{page_no-1}"))
-    if total_results > 10 * page_no:
+    if page_no < total_pages:
         navigation_buttons.append(InlineKeyboardButton("➡️", callback_data=f"{search_type}#{item_id}#{page_no+1}"))
     if navigation_buttons:
         buttons.append(navigation_buttons)

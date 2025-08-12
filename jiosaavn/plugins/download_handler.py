@@ -170,7 +170,9 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     
     # Handle different response formats
     if not song_response:
-        raise ValueError(f"No response received for song ID: {song_id}")
+        # Try to provide a more helpful error message
+        await safe_edit(msg, f"**❌ Song not found:** Could not find song with ID `{song_id}`\n\nThis might be due to:\n• Invalid song ID\n• Song removed from JioSaavn\n• Temporary API issues\n• Regional restrictions")
+        return
     
     # Handle both official API and fallback API formats
     song_data = None
