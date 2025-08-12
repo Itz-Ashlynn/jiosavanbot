@@ -14,20 +14,46 @@ class JioSaavnFallback:
     
     async def _request_data(self, url: str, params: Dict[str, Any] = None) -> Union[Dict[str, Any], List[Any]]:
         """Make request to fallback API"""
+        import logging
+        logger = logging.getLogger(__name__)
+        
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'application/json',
         }
         
+        logger.info(f"🔄 Fallback API Request: {url}")
+        logger.info(f"📋 Parameters: {params}")
+        
         try:
             async with aiohttp.ClientSession(headers=headers) as session:
                 async with session.get(url=url, params=params) as response:
+                    logger.info(f"📡 Response Status: {response.status}")
                     response.raise_for_status()
-                    return await response.json()
+                    
+                    response_data = await response.json()
+                    logger.info(f"✅ Fallback API Success: {response_data.get('success', False)}")
+                    
+                    if response_data.get('success') and response_data.get('data'):
+                        logger.info(f"📊 Data keys: {list(response_data['data'].keys())}")
+                        
+                        # Log specific info based on data type
+                        data = response_data['data']
+                        if 'songs' in data:
+                            logger.info(f"🎵 Songs found: {len(data.get('songs', []))}")
+                        if 'topSongs' in data:
+                            logger.info(f"🎵 Top songs found: {len(data.get('topSongs', []))}")
+                        if 'name' in data:
+                            logger.info(f"📝 Name: {data.get('name')}")
+                    else:
+                        logger.warning(f"⚠️ Fallback API returned unsuccessful response")
+                    
+                    return response_data
+                    
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.debug(f"Fallback API request failed: {e}")
+            logger.error(f"❌ Fallback API request failed: {e}")
+            logger.error(f"🔗 Failed URL: {url}")
+            logger.error(f"📋 Failed params: {params}")
             return None
     
     async def get_playlist(self, playlist_id: str, playlist_url: str = None) -> Optional[Dict[str, Any]]:
@@ -54,10 +80,17 @@ class JioSaavnFallback:
             
         return await self._request_data(url, params)
     
-    async def get_artist_songs(self, artist_id: str, page: int = 1) -> Optional[Dict[str, Any]]:
+    async def get_artist_songs(self, artist_id: str, page: int = 1, song_count: int = 20, album_count: int = 10) -> Optional[Dict[str, Any]]:
         """Get artist songs from fallback API"""
         url = f"{self.BASE_URL}/api/artists"
-        params = {'id': artist_id, 'page': page}
+        params = {
+            'id': artist_id, 
+            'page': page,
+            'songCount': song_count,
+            'albumCount': album_count,
+            'sortBy': 'popularity',
+            'sortOrder': 'desc'
+        }
         return await self._request_data(url, params)
 
 
@@ -263,26 +296,33 @@ class Jiosaavn:
             import logging
             logger = logging.getLogger(__name__)
             logger.debug(f"Trying fallback API for artist {artist_id}")
-            fallback_response = await self.fallback.get_artist_songs(artist_id, page_no)
+            fallback_response = await self.fallback.get_artist_songs(artist_id, page_no, page_size)
             
-            if fallback_response and fallback_response.get('data') and fallback_response['data'].get('songs'):
+            if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                 # Convert fallback format to expected format
-                songs = fallback_response['data']['songs']
                 artist_info = fallback_response['data']
+                songs = artist_info.get('topSongs', [])
+                
+                # Extract image URL properly
+                image_url = ''
+                if artist_info.get('image') and isinstance(artist_info['image'], list) and len(artist_info['image']) > 0:
+                    # Get the highest quality image
+                    image_url = artist_info['image'][-1].get('url', '')
                 
                 artist_response = {
                     "artistId": artist_id,
                     "name": artist_info.get('name', artist_name or 'Unknown'),
-                    "image": artist_info.get('image', [{'quality': '500x500', 'link': ''}])[-1].get('link', ''),
+                    "image": image_url,
                     "type": "artist",
                     "topSongs": songs,
                     "count": len(songs),
                     "follower_count": str(artist_info.get('followerCount', 0)),
+                    "dob": artist_info.get('dob'),
                     "urls": {
-                        "songs": f"https://www.jiosaavn.com/artist/{artist_info.get('name', '').lower().replace(' ', '-')}-songs/"
+                        "songs": artist_info.get('url', f"https://www.jiosaavn.com/artist/{artist_info.get('name', '').lower().replace(' ', '-')}-songs/")
                     }
                 }
-                logger.debug(f"Fallback API returned {len(songs)} songs for artist")
+                logger.debug(f"✅ Fallback API returned {len(songs)} songs for artist {artist_info.get('name')}")
                 return artist_response
 
         # If fallback fails or no artist_id, fall back to song search
@@ -373,13 +413,24 @@ class Jiosaavn:
             '_marker': 0
         }
 
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🌐 Official API Request: {search_type} with token {token}")
+        logger.info(f"📋 Official API params: {params}")
+        
         response = await self._request_data(self.API_URL, params=params)
+        
+        if response:
+            logger.info(f"✅ Official API Response received with keys: {list(response.keys())}")
+        else:
+            logger.warning(f"❌ Official API returned None/empty response")
         
         # Try fallback API if original fails or returns empty
         if not response or (not response.get("list") and not response.get("songs")):
             import logging
             logger = logging.getLogger(__name__)
-            logger.debug(f"Trying fallback API for {search_type} {token}")
+            logger.info(f"🔄 Official API failed for {search_type} {token}, trying fallback API...")
+            logger.info(f"📋 Original response: {response}")
             
             if search_type == "playlist":
                 fallback_response = await self.fallback.get_playlist(token, original_url)
