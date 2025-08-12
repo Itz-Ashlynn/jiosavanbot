@@ -115,7 +115,8 @@ async def download(client: Bot, message: Message|CallbackQuery):
                     pass  # Continue if edit fails
                 
                 try:
-                    await download_tool(client, message, msg, song_id)
+                    # Pass a flag to indicate this is a batch download
+                    await download_tool(client, message, msg, song_id, is_batch_download=True)
                     download_success += 1
                 except Exception as e:
                     logger.error(f"Failed to download song {song_id}: {e}")
@@ -138,7 +139,7 @@ async def download(client: Bot, message: Message|CallbackQuery):
         await safe_edit(msg, "Podcast upload not supported.")
         return
 
-async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Message, song_id: str):
+async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Message, song_id: str, is_batch_download: bool = False):
     is_exist = await client.db.is_song_id_exist(song_id)
     user = await client.db.get_user(message.from_user.id)
     quality = user['quality']
@@ -152,11 +153,12 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
                 if not song_msg.empty:
                     is_sent = await song_msg.copy(message.from_user.id, reply_to_message_id=msg.reply_to_message.id)
                     if is_sent:
-                        # Delete temp message after successful copy
-                        try:
-                            await msg.delete()
-                        except Exception as e:
-                            logger.debug(f"Could not delete temp message: {e}")
+                        # Only delete temp message if not in batch download mode
+                        if not is_batch_download:
+                            try:
+                                await msg.delete()
+                            except Exception as e:
+                                logger.debug(f"Could not delete temp message: {e}")
                         return
             except Exception as e:
                 logger.debug(f"Could not copy existing song: {e}")
@@ -432,11 +434,12 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         except Exception as e:
             logger.debug(f"Could not delete thumbnail file {thumbnail_location}: {e}")
         
-        # Delete the temporary message after successful upload
-        try:
-            await msg.delete()
-        except Exception as e:
-            logger.debug(f"Could not delete temp message: {e}")
+        # Delete the temporary message after successful upload (only if not batch download)
+        if not is_batch_download:
+            try:
+                await msg.delete()
+            except Exception as e:
+                logger.debug(f"Could not delete temp message: {e}")
             
     except Exception as e:
         logger.error(f"Error uploading song {title}: {e}")
