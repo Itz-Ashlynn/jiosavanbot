@@ -164,7 +164,19 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
 
     # Extract song data
     song_response = await Jiosaavn().get_song(song_id=song_id)
-    song_data = song_response["songs"][0]
+    
+    # Handle different response formats
+    if not song_response:
+        raise ValueError(f"No response received for song ID: {song_id}")
+    
+    # Check if songs is a list or object
+    songs = song_response.get("songs")
+    if isinstance(songs, list) and len(songs) > 0:
+        song_data = songs[0]
+    elif isinstance(songs, dict):
+        song_data = songs
+    else:
+        raise ValueError(f"Invalid song response format for ID: {song_id}. Response: {song_response}")
 
     # Extract metadata
     title = song_data.get("title", "Unknown")

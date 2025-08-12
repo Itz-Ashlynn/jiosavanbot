@@ -98,17 +98,45 @@ class JioSaavnFallback:
         params = {'id': album_id, 'page': 0, 'limit': 50}
         return await self._request_data(url, params)
     
-    async def get_artist_songs(self, artist_id: str, page: int = 1, song_count: int = 20, album_count: int = 10) -> Optional[Dict[str, Any]]:
+    async def get_artist_songs(self, artist_id: str, page: int = 1, song_count: int = 20, album_count: int = 10, artist_url: str = None) -> Optional[Dict[str, Any]]:
         """Get artist songs from fallback API"""
         url = f"{self.BASE_URL}/api/artists"
-        params = {
-            'id': artist_id, 
-            'page': page,
-            'songCount': song_count,
-            'albumCount': album_count,
-            'sortBy': 'popularity',
-            'sortOrder': 'desc'
-        }
+        
+        # Try with URL first if provided, as it seems more reliable
+        if artist_url:
+            params = {'link': artist_url, 'page': page, 'songCount': song_count, 'albumCount': album_count, 'sortBy': 'popularity', 'sortOrder': 'desc'}
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            response = await self._request_data(url, params)
+            if response and response.get('success'):
+                return response
+        
+        # If artist_id looks like a numeric ID, use it directly
+        if artist_id and artist_id.isdigit():
+            params = {'id': artist_id, 'page': page, 'songCount': song_count, 'albumCount': album_count, 'sortBy': 'popularity', 'sortOrder': 'desc'}
+            # Remove None values
+            params = {k: v for k, v in params.items() if v is not None}
+            return await self._request_data(url, params)
+        
+        # Try with the original ID anyway
+        params = {'id': artist_id, 'page': page, 'songCount': song_count, 'albumCount': album_count, 'sortBy': 'popularity', 'sortOrder': 'desc'}
+        # Remove None values
+        params = {k: v for k, v in params.items() if v is not None}
+        return await self._request_data(url, params)
+    
+    async def get_song(self, song_id: str, song_url: str = None) -> Optional[Dict[str, Any]]:
+        """Get song from fallback API"""
+        url = f"{self.BASE_URL}/api/songs"
+        
+        # Try with URL first if provided, as it seems more reliable
+        if song_url:
+            params = {'link': song_url}
+            response = await self._request_data(url, params)
+            if response and response.get('success'):
+                return response
+        
+        # Try with song ID (note: API expects 'ids' parameter)
+        params = {'ids': song_id}
         return await self._request_data(url, params)
 
 
@@ -314,7 +342,13 @@ class Jiosaavn:
             import logging
             logger = logging.getLogger(__name__)
             logger.info(f"🎤 Using fallback API directly for artist {artist_id}")
-            fallback_response = await self.fallback.get_artist_songs(artist_id, page_no, page_size)
+            
+            # Try to get artist URL from the response if available
+            artist_url = None
+            if response and response.get("perma_url"):
+                artist_url = response["perma_url"]
+            
+            fallback_response = await self.fallback.get_artist_songs(artist_id, page_no, page_size, 10, artist_url)
             
             if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                 # Convert fallback format to expected format
@@ -637,7 +671,30 @@ class Jiosaavn:
             '_format': 'json',
             '_marker': 0
         }
-        return await self._request_data(self.API_URL, params=params)
+        
+        # Try official API first
+        response = await self._request_data(self.API_URL, params=params)
+        
+        # If official API fails or returns empty, try fallback API
+        if not response or not response.get("songs"):
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"🔄 Official song API failed for {song_id}, trying fallback API...")
+            
+            fallback_response = await self.fallback.get_song(song_id)
+            if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
+                # Convert fallback format to expected format
+                data = fallback_response['data']
+                
+                # Convert to expected format - the data should be an array of songs
+                if isinstance(data, list):
+                    response = {"songs": data}
+                else:
+                    response = {"songs": [data]}
+                    
+                logger.info(f"✅ Fallback song API success for {song_id}")
+        
+        return response
 
     async def get_song_lyrics(
         self,
