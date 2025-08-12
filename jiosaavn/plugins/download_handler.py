@@ -27,6 +27,7 @@ async def download(client: Bot, message: Message|CallbackQuery):
         msg.reply_to_message = message
         query = message.text
         item_id = query.rsplit("/", 1)[1]
+        search_type = "song"  # Default to song
         if "song" in query:
             search_type = "song"
         elif "album" in query:
@@ -171,13 +172,30 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     if not song_response:
         raise ValueError(f"No response received for song ID: {song_id}")
     
-    # Check if songs is a list or object
-    songs = song_response.get("songs")
-    if isinstance(songs, list) and len(songs) > 0:
-        song_data = songs[0]
-    elif isinstance(songs, dict):
-        song_data = songs
-    else:
+    # Handle both official API and fallback API formats
+    song_data = None
+    
+    # Try official API format first
+    if song_response.get("songs"):
+        songs = song_response.get("songs")
+        if isinstance(songs, list) and len(songs) > 0:
+            song_data = songs[0]
+        elif isinstance(songs, dict):
+            song_data = songs
+    
+    # Try fallback API format
+    if not song_data and song_response.get("data"):
+        data = song_response.get("data")
+        if isinstance(data, list) and len(data) > 0:
+            song_data = data[0]
+        elif isinstance(data, dict):
+            song_data = data
+    
+    # If still no song_data, try direct response
+    if not song_data and isinstance(song_response, dict):
+        song_data = song_response
+    
+    if not song_data:
         raise ValueError(f"Invalid song response format for ID: {song_id}. Response: {song_response}")
 
     # Extract metadata - handle both official API and fallback API formats
@@ -191,32 +209,53 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     # Handle different API response formats
     more_info = song_data.get("more_info", {})
     
-    # Extract album info - fallback API has direct album field
-    album = more_info.get("album") or song_data.get("album", {})
-    if isinstance(album, dict):
-        album = album.get("name", "Unknown")
-    elif not isinstance(album, str):
-        album = "Unknown"
+    # Extract album info - handle both official API and new API formats
+    album = "Unknown"
+    album_url = ""
     
-    # Extract artists - handle both formats
+    # Try official API format first
+    if more_info.get("album"):
+        album_data = more_info.get("album")
+        if isinstance(album_data, dict):
+            album = album_data.get("name", "Unknown")
+        elif isinstance(album_data, str):
+            album = album_data
+    
+    # Try new API format (direct album field)
+    if album == "Unknown" and song_data.get("album"):
+        album_data = song_data.get("album")
+        if isinstance(album_data, dict):
+            album = album_data.get("name", "Unknown")
+            album_url = album_data.get("url", "")
+        elif isinstance(album_data, str):
+            album = album_data
+    
+    # Try more_info album_url
+    if not album_url:
+        album_url = more_info.get("album_url", "")
+    
+    # Extract artists - handle both official API and new API formats
     artists = []
+    
+    # Try official API format first (artistMap)
     if more_info.get("artistMap", {}).get("artists"):
-        # Official API format
         artists = more_info["artistMap"]["artists"]
-    elif song_data.get("artists"):
-        # Fallback API format
+    
+    # Try new API format (direct artists field)
+    if not artists and song_data.get("artists"):
         artists_data = song_data["artists"]
         if isinstance(artists_data, list):
             artists = artists_data
         elif isinstance(artists_data, dict):
-            # Artists is a dict - convert to list format
-            # Check if it has common artist list keys
+            # New API format: artists is a dict with primary_artists, featured_artists, etc.
             if "primary_artists" in artists_data:
-                artists = artists_data.get("primary_artists", [])
-            elif "all" in artists_data:
-                artists = artists_data.get("all", [])
-            else:
-                # Fallback: treat the dict as a single artist entry
+                artists.extend(artists_data.get("primary_artists", []))
+            if "featured_artists" in artists_data:
+                artists.extend(artists_data.get("featured_artists", []))
+            if "all" in artists_data:
+                artists.extend(artists_data.get("all", []))
+            # If no structured data, treat as single artist
+            if not artists and artists_data:
                 artists = [artists_data]
     
     # Ensure artists is always a list
@@ -258,7 +297,6 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         duration = 0
     
     # Extract URLs
-    album_url = more_info.get("album_url", "")
     if not album_url and isinstance(album, str) and album != "Unknown":
         # Fallback: construct album URL if not provided
         album_url = f"https://jiosaavn.com/album/{album.lower().replace(' ', '-')}"
