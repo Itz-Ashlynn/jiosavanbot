@@ -48,60 +48,75 @@ async def download(client: Bot, message: Message|CallbackQuery):
         if isinstance(message, Message):
             original_url = message.text
 
-        while True:
-            # For direct URL access, prioritize fallback API
+        # Get playlist/album data
+        try:
             jiosaavn = Jiosaavn()
-            if original_url:
-                # Try fallback API first for URL-based access
-                if search_type == "playlist":
-                    fallback_response = await jiosaavn.fallback.get_playlist(item_id, original_url)
-                elif search_type == "album":
-                    fallback_response = await jiosaavn.fallback.get_album(item_id, original_url)
-                else:
-                    fallback_response = None
-                
-                if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
-                    # Convert fallback response to expected format
-                    data = fallback_response['data']
-                    songs = data.get('songs', [])
-                    
-                    if songs:
-                        # Create compatible response
-                        response = {
-                            "list": songs,
-                            "title": data.get('name', 'Unknown'),
-                            "list_count": len(songs)
-                        }
-                    else:
-                        response = None
-                else:
-                    # Fallback to original API
-                    response = await jiosaavn.get_playlist_or_album(
-                        album_id=album_id, 
-                        playlist_id=playlist_id, 
-                        page_no=page_no,
-                        original_url=original_url
-                    )
-            else:
-                # Use original method for non-URL access
-                response = await jiosaavn.get_playlist_or_album(
-                    album_id=album_id, 
-                    playlist_id=playlist_id, 
-                    page_no=page_no,
-                    original_url=original_url
-                )
+            response = await jiosaavn.get_playlist_or_album(
+                album_id=album_id, 
+                playlist_id=playlist_id, 
+                page_no=page_no,
+                original_url=original_url
+            )
             
             if not response or not response.get("list"):
-                break
+                await safe_edit(msg, f"**No songs found in this {search_type}.**\n\nThis might be due to:\n• Invalid {search_type} ID\n• {search_type.title()} removed from JioSaavn\n• Temporary API issues")
+                return
             
+            # Download all songs from the playlist/album
             songs = response["list"]
-            for song in songs:
+            total_songs = len(songs)
+            
+            if total_songs == 0:
+                await safe_edit(msg, f"**This {search_type} is empty.**")
+                return
+            
+            # Limit to a reasonable number to prevent overwhelming
+            MAX_SONGS = 50
+            if total_songs > MAX_SONGS:
+                songs = songs[:MAX_SONGS]
+                total_songs = MAX_SONGS
+                await safe_edit(msg, f"**Found {response.get('list_count', 'many')} songs, downloading first {MAX_SONGS}...**")
+            else:
+                await safe_edit(msg, f"**Found {total_songs} songs. Starting download...**")
+            
+            download_success = 0
+            download_failed = 0
+            
+            for i, song in enumerate(songs, 1):
                 song_url = song.get("perma_url", "")
                 if not song_url:
+                    download_failed += 1
                     continue
+                    
                 song_id = song_url.rsplit("/", 1)[-1]
-                await download_tool(client, message, msg, song_id)
-            page_no += 1
+                
+                # Update progress
+                progress_msg = f"**Downloading song {i}/{total_songs}...**"
+                try:
+                    await safe_edit(msg, progress_msg)
+                except:
+                    pass  # Continue if edit fails
+                
+                try:
+                    await download_tool(client, message, msg, song_id)
+                    download_success += 1
+                except Exception as e:
+                    logger.error(f"Failed to download song {song_id}: {e}")
+                    download_failed += 1
+                    continue
+            
+            # Final status message
+            if download_success > 0:
+                status_msg = f"**✅ Download complete!**\n\n**Downloaded:** {download_success} songs"
+                if download_failed > 0:
+                    status_msg += f"\n**Failed:** {download_failed} songs"
+                await safe_edit(msg, status_msg)
+            else:
+                await safe_edit(msg, f"**❌ Failed to download any songs from this {search_type}.**")
+                
+        except Exception as e:
+            logger.error(f"Error processing {search_type}: {e}")
+            await safe_edit(msg, f"**❌ Error processing {search_type}: {str(e)}**")
     else:
         await safe_edit(msg, "Artists and Podcast upload not supported.")
         return

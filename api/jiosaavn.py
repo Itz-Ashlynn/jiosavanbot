@@ -63,9 +63,18 @@ class JioSaavnFallback:
         # Try with URL first if provided, as it seems more reliable
         if playlist_url:
             params = {'link': playlist_url, 'page': 0, 'limit': 50}
-        else:
+            response = await self._request_data(url, params)
+            if response and response.get('success'):
+                return response
+        
+        # If playlist_id looks like a numeric ID, use it directly
+        if playlist_id and playlist_id.isdigit():
             params = {'id': playlist_id, 'page': 0, 'limit': 50}
-            
+            return await self._request_data(url, params)
+        
+        # If not numeric and no URL, try to extract numeric ID from the alphanumeric one
+        # This might need to be improved based on JioSaavn's ID format
+        params = {'id': playlist_id, 'page': 0, 'limit': 50}
         return await self._request_data(url, params)
     
     async def get_album(self, album_id: str, album_url: str = None) -> Optional[Dict[str, Any]]:
@@ -75,9 +84,18 @@ class JioSaavnFallback:
         # Try with URL first if provided, as it seems more reliable
         if album_url:
             params = {'link': album_url, 'page': 0, 'limit': 50}
-        else:
+            response = await self._request_data(url, params)
+            if response and response.get('success'):
+                return response
+        
+        # If album_id looks like a numeric ID, use it directly
+        if album_id and album_id.isdigit():
             params = {'id': album_id, 'page': 0, 'limit': 50}
-            
+            return await self._request_data(url, params)
+        
+        # If not numeric and no URL, try to extract numeric ID from the alphanumeric one
+        # This might need to be improved based on JioSaavn's ID format
+        params = {'id': album_id, 'page': 0, 'limit': 50}
         return await self._request_data(url, params)
     
     async def get_artist_songs(self, artist_id: str, page: int = 1, song_count: int = 20, album_count: int = 10) -> Optional[Dict[str, Any]]:
@@ -302,28 +320,45 @@ class Jiosaavn:
                 # Convert fallback format to expected format
                 artist_info = fallback_response['data']
                 songs = artist_info.get('topSongs', [])
+                albums = artist_info.get('topAlbums', [])
+                
+                # Combine songs and albums for compatibility
+                all_items = songs + albums
                 
                 # Extract image URL properly
                 image_url = ''
                 if artist_info.get('image') and isinstance(artist_info['image'], list) and len(artist_info['image']) > 0:
                     # Get the highest quality image
                     image_url = artist_info['image'][-1].get('url', '')
+                elif artist_info.get('image') and isinstance(artist_info['image'], str):
+                    image_url = artist_info['image']
                 
                 artist_response = {
                     "artistId": artist_id,
                     "name": artist_info.get('name', artist_name or 'Unknown'),
                     "image": image_url,
                     "type": "artist",
-                    "topSongs": songs,
-                    "count": len(songs),
+                    "topSongs": all_items,  # Include both songs and albums
+                    "count": len(all_items),
                     "follower_count": str(artist_info.get('followerCount', 0)),
-                    "dob": artist_info.get('dob'),
+                    "fan_count": str(artist_info.get('fanCount', 0)),
+                    "is_verified": artist_info.get('isVerified', False),
+                    "dominant_language": artist_info.get('dominantLanguage', ''),
+                    "dominant_type": artist_info.get('dominantType', ''),
+                    "bio": artist_info.get('bio', ''),
+                    "dob": artist_info.get('dob', ''),
                     "urls": {
                         "songs": artist_info.get('url', f"https://www.jiosaavn.com/artist/{artist_info.get('name', '').lower().replace(' ', '-')}-songs/")
                     }
                 }
-                logger.debug(f"✅ Fallback API returned {len(songs)} songs for artist {artist_info.get('name')}")
+                logger.info(f"✅ Fallback API returned {len(songs)} songs and {len(albums)} albums for artist {artist_info.get('name')}")
                 return artist_response
+            else:
+                logger.warning(f"⚠️ Fallback API failed for artist {artist_id}")
+                if fallback_response:
+                    logger.debug(f"Fallback response: {fallback_response}")
+                else:
+                    logger.debug("No response from fallback API")
 
         # If fallback fails or no artist_id, fall back to song search
         if artist_id and not artist_name:
@@ -441,7 +476,19 @@ class Jiosaavn:
             logger.info(f"📋 Original response: {response}")
             
             if search_type == "playlist":
-                fallback_response = await self.fallback.get_playlist(token, original_url)
+                # Try to get numeric ID from the original response if available
+                numeric_id = None
+                if response and response.get('id'):
+                    numeric_id = response['id']
+                
+                # Use numeric ID if available, otherwise use token and original_url
+                if numeric_id and numeric_id.isdigit():
+                    logger.info(f"🔢 Using numeric ID {numeric_id} for fallback API")
+                    fallback_response = await self.fallback.get_playlist(numeric_id, original_url)
+                else:
+                    logger.info(f"🌐 Using token {token} and URL for fallback API")
+                    fallback_response = await self.fallback.get_playlist(token, original_url)
+                
                 if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                     # Convert fallback format to expected format
                     data = fallback_response['data']
@@ -454,7 +501,7 @@ class Jiosaavn:
                         image_url = data['image'][-1].get('url', '')
                     
                     response = {
-                        "id": token,
+                        "id": numeric_id or token,
                         "title": data.get('name', 'Unknown Playlist'),
                         "image": image_url,
                         "list": songs,
@@ -469,7 +516,19 @@ class Jiosaavn:
                     return response
             
             elif search_type == "album":
-                fallback_response = await self.fallback.get_album(token, original_url)
+                # Try to get numeric ID from the original response if available
+                numeric_id = None
+                if response and response.get('id'):
+                    numeric_id = response['id']
+                
+                # Use numeric ID if available, otherwise use token and original_url
+                if numeric_id and numeric_id.isdigit():
+                    logger.info(f"🔢 Using numeric ID {numeric_id} for fallback API")
+                    fallback_response = await self.fallback.get_album(numeric_id, original_url)
+                else:
+                    logger.info(f"🌐 Using token {token} and URL for fallback API")
+                    fallback_response = await self.fallback.get_album(token, original_url)
+                
                 if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                     # Convert fallback format to expected format
                     data = fallback_response['data']
@@ -482,7 +541,7 @@ class Jiosaavn:
                         image_url = data['image'][-1].get('url', '')
                     
                     response = {
-                        "id": token,
+                        "id": numeric_id or token,
                         "title": data.get('name', 'Unknown Album'),
                         "image": image_url,
                         "list": songs,
