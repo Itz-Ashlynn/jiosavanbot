@@ -1,30 +1,70 @@
 {
-  "name": "Jiosaavn Bot",
-  "description": "This is a advance telegram bot to search and download Jiosaavn songs",
-  "repository": "https://github.com/teleservices-api/jiosaavn",
+  "name": "JioSaavn Music Bot",
+  "description": "🚀 Advanced Telegram bot for downloading high-quality music from JioSaavn. Features include smart search, playlist downloads, multiple quality options (48kbps-320kbps), admin panel, real-time statistics, and beautiful web interface. Perfect for music lovers!",
+  "repository": "https://github.com/Itz-Ashlynn/jiosavanbot",
   "logo": "https://telegra.ph/file/668e019e93b622b467e7d.jpg",
   "keywords": [
-    "Best",
-    "Jiosaavn",
-    "Songs",
-    "Telegram Bot"
-   ],
+    "jiosaavn",
+    "telegram-bot",
+    "music-downloader",
+    "python",
+    "pyrogram",
+    "mongodb",
+    "music",
+    "songs",
+    "playlists",
+    "albums",
+    "artists",
+    "high-quality",
+    "320kbps",
+    "admin-panel",
+    "statistics",
+    "web-interface",
+    "docker",
+    "heroku",
+    "render",
+    "railway",
+    "koyeb"
+  ],
   "env": {
     "BOT_TOKEN": {
-      "description": "Get it from @BotFather"
+      "description": "Your Telegram Bot Token from @BotFather",
+      "required": true
     },
     "API_ID": {
-      "description": "Your API_ID, Get it from https://my.telegram.org/"
+      "description": "Your Telegram API ID from https://my.telegram.org/",
+      "required": true
     },
     "API_HASH": {
-      "description": "Your API_HASH, Get it from https://my.telegram.org/"
+      "description": "Your Telegram API Hash from https://my.telegram.org/",
+      "required": true
+    },
+    "OWNER_ID": {
+      "description": "Your Telegram User ID for admin features",
+      "required": true
     },
     "DATABASE_URL": {
-      "description": "Mongodb token for saving the users data",
+      "description": "MongoDB connection URL for storing user data and statistics",
+      "required": true,
       "value": ""
     }
   },
   "buildpacks": [
     {"url": "heroku/python"}
-  ]
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    "mongolab:sandbox"
+  ],
+  "scripts": {
+    "postdeploy": "python -m jiosaavn"
+  },
+  "success_url": "/",
+  "website": "https://github.com/Itz-Ashlynn/jiosavanbot",
+  "stack": "heroku-22"
 }

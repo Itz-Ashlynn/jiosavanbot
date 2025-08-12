@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JioSaavn Bot - Music at Your Fingertips</title>
-    <meta name="description" content="Advanced JioSaavn Telegram Bot for downloading high-quality music, playlists, and albums">
-    <meta name="keywords" content="JioSaavn, Telegram Bot, Music Download, Songs, Playlists, Albums">
+    <meta name="description" content="Advanced JioSaavn Telegram Bot for downloading high-quality music, playlists, and albums with real-time statistics and admin panel">
+    <meta name="keywords" content="JioSaavn, Telegram Bot, Music Download, Songs, Playlists, Albums, 320kbps, High Quality">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎵%3C/text%3E%3C/svg%3E">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,6 +23,7 @@
                 <div class="wave"></div>
             </div>
             <h2>Loading JioSaavn Bot...</h2>
+            <p>Preparing your music experience</p>
         </div>
     </div>
 
@@ -37,6 +38,7 @@
                 <a href="#home" class="nav-link">Home</a>
                 <a href="#features" class="nav-link">Features</a>
                 <a href="#stats" class="nav-link">Statistics</a>
+                <a href="#api" class="nav-link">API Docs</a>
                 <a href="#contact" class="nav-link">Contact</a>
                 <a href="https://t.me/your_bot_username" class="nav-link btn-primary">Start Bot</a>
             </div>
@@ -57,6 +59,9 @@
                 <i class="fas fa-microphone"></i>
                 <i class="fas fa-guitar"></i>
                 <i class="fas fa-drum"></i>
+                <i class="fas fa-piano"></i>
+                <i class="fas fa-violin"></i>
+                <i class="fas fa-saxophone"></i>
             </div>
         </div>
         <div class="container">
@@ -67,7 +72,8 @@
                 </h1>
                 <p class="hero-description">
                     Experience the ultimate music downloading bot for Telegram. Download high-quality songs, 
-                    playlists, and albums directly from JioSaavn with just a few taps.
+                    playlists, and albums directly from JioSaavn with just a few taps. Support for multiple 
+                    quality options including premium 320kbps audio.
                 </p>
                 <div class="hero-buttons">
                     <a href="https://t.me/your_bot_username" class="btn btn-primary">
@@ -78,6 +84,10 @@
                         <i class="fas fa-info-circle"></i>
                         Learn More
                     </a>
+                    <a href="https://jiosavanwave.vercel.app/docs" class="btn btn-outline" target="_blank">
+                        <i class="fas fa-book"></i>
+                        API Docs
+                    </a>
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
@@ -86,11 +96,15 @@
                     </div>
                     <div class="stat-item">
                         <span class="stat-number" data-target="50000">0</span>
-                        <span class="stat-label">Songs Downloaded</span>
+                        <span class="stat-label">Songs Available</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number" data-target="99">0</span>
                         <span class="stat-label">Uptime %</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="320">0</span>
+                        <span class="stat-label">Max Quality (kbps)</span>
                     </div>
                 </div>
             </div>
@@ -110,42 +124,56 @@
                         <i class="fas fa-download"></i>
                     </div>
                     <h3>High-Quality Downloads</h3>
-                    <p>Download music in multiple quality options: 48kbps, 96kbps, 160kbps, and 320kbps for crystal clear audio.</p>
+                    <p>Download music in multiple quality options: 48kbps, 96kbps, 160kbps, and premium 320kbps for crystal clear audio.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-search"></i>
                     </div>
                     <h3>Smart Search</h3>
-                    <p>Advanced search functionality to find songs, albums, playlists, and artists instantly.</p>
+                    <p>Advanced search functionality to find songs, albums, playlists, and artists instantly with intelligent suggestions.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-list"></i>
                     </div>
                     <h3>Playlist Support</h3>
-                    <p>Download entire playlists and albums with a single command. Save time and effort.</p>
+                    <p>Download entire playlists and albums with a single command. Batch processing saves time and effort.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-cog"></i>
                     </div>
                     <h3>Customizable Settings</h3>
-                    <p>Personalize your experience with custom quality preferences and download types.</p>
+                    <p>Personalize your experience with custom quality preferences, download types, and user-specific settings.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-bolt"></i>
                     </div>
                     <h3>Lightning Fast</h3>
-                    <p>Optimized for speed with concurrent downloads and efficient processing.</p>
+                    <p>Optimized for speed with concurrent downloads, efficient processing, and smart caching mechanisms.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <h3>Secure & Private</h3>
-                    <p>Your data is protected with advanced security measures and privacy-first approach.</p>
+                    <p>Your data is protected with advanced security measures, privacy-first approach, and encrypted communications.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Real-time Analytics</h3>
+                    <p>Monitor bot performance with live statistics, user analytics, and detailed usage reports.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Mobile Optimized</h3>
+                    <p>Perfect experience on all devices with responsive design, touch-friendly interface, and mobile-optimized features.</p>
                 </div>
             </div>
         </div>
@@ -164,37 +192,37 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number loading-stat" data-api="users">Loading...</div>
+                        <div class="stat-number loading-stat" data-api="total_users">Loading...</div>
                         <div class="stat-label">Total Users</div>
                         <div class="stat-trend positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+12.5%</span>
+                            <span>Growing</span>
                         </div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-download"></i>
+                        <i class="fas fa-user-check"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number loading-stat" data-api="downloads">Loading...</div>
-                        <div class="stat-label">Downloads Today</div>
+                        <div class="stat-number loading-stat" data-api="active_users">Loading...</div>
+                        <div class="stat-label">Active Users</div>
                         <div class="stat-trend positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>+8.2%</span>
+                            <span>Online</span>
                         </div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-calendar-day"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number">99.9%</div>
-                        <div class="stat-label">Uptime</div>
+                        <div class="stat-number loading-stat" data-api="today_users">Loading...</div>
+                        <div class="stat-label">Today's Users</div>
                         <div class="stat-trend positive">
                             <i class="fas fa-arrow-up"></i>
-                            <span>Stable</span>
+                            <span>Active</span>
                         </div>
                     </div>
                 </div>
@@ -203,7 +231,7 @@
                         <i class="fas fa-music"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-number loading-stat" data-api="songs">Loading...</div>
+                        <div class="stat-number">50,000+</div>
                         <div class="stat-label">Songs Available</div>
                         <div class="stat-trend positive">
                             <i class="fas fa-arrow-up"></i>
@@ -223,31 +251,104 @@
                     <div class="quality-bar">
                         <div class="quality-label">320kbps</div>
                         <div class="quality-progress">
-                            <div class="quality-fill" data-width="65"></div>
+                            <div class="quality-fill" data-width="60" data-api="320kbps">0%</div>
                         </div>
-                        <div class="quality-percentage">65%</div>
+                        <div class="quality-percentage loading-stat" data-api="320kbps">Loading...</div>
                     </div>
                     <div class="quality-bar">
                         <div class="quality-label">160kbps</div>
                         <div class="quality-progress">
-                            <div class="quality-fill" data-width="25"></div>
+                            <div class="quality-fill" data-width="25" data-api="160kbps">0%</div>
                         </div>
-                        <div class="quality-percentage">25%</div>
+                        <div class="quality-percentage loading-stat" data-api="160kbps">Loading...</div>
                     </div>
                     <div class="quality-bar">
                         <div class="quality-label">96kbps</div>
                         <div class="quality-progress">
-                            <div class="quality-fill" data-width="8"></div>
+                            <div class="quality-fill" data-width="10" data-api="96kbps">0%</div>
                         </div>
-                        <div class="quality-percentage">8%</div>
+                        <div class="quality-percentage loading-stat" data-api="96kbps">Loading...</div>
                     </div>
                     <div class="quality-bar">
                         <div class="quality-label">48kbps</div>
                         <div class="quality-progress">
-                            <div class="quality-fill" data-width="2"></div>
+                            <div class="quality-fill" data-width="5" data-api="48kbps">0%</div>
                         </div>
-                        <div class="quality-percentage">2%</div>
+                        <div class="quality-percentage loading-stat" data-api="48kbps">Loading...</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Type Distribution -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3>Download Types</h3>
+                    <p>Distribution of different content types</p>
+                </div>
+                <div class="type-chart">
+                    <div class="type-item">
+                        <div class="type-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="type-content">
+                            <div class="type-label">All Types</div>
+                            <div class="type-number loading-stat" data-api="all_types">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="type-item">
+                        <div class="type-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="type-content">
+                            <div class="type-label">Songs Only</div>
+                            <div class="type-number loading-stat" data-api="song_types">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Documentation Section -->
+    <section id="api" class="api-docs">
+        <div class="container">
+            <div class="section-header">
+                <h2>API Documentation</h2>
+                <p>Comprehensive API documentation for developers</p>
+            </div>
+            <div class="api-content">
+                <div class="api-card">
+                    <div class="api-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>JioSaavn API</h3>
+                    <p>Complete documentation for the JioSaavn API with examples, endpoints, and integration guides.</p>
+                    <a href="https://jiosavanwave.vercel.app/docs" class="api-link" target="_blank">
+                        <i class="fas fa-external-link-alt"></i>
+                        View Documentation
+                    </a>
+                </div>
+                <div class="api-card">
+                    <div class="api-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Bot API</h3>
+                    <p>API endpoints for bot statistics, user management, and real-time data access.</p>
+                    <a href="/api/stats" class="api-link">
+                        <i class="fas fa-chart-bar"></i>
+                        View Stats API
+                    </a>
+                </div>
+                <div class="api-card">
+                    <div class="api-icon">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h3>Source Code</h3>
+                    <p>Open source codebase with detailed documentation, examples, and contribution guidelines.</p>
+                    <a href="https://github.com/Itz-Ashlynn/jiosavanbot" class="api-link" target="_blank">
+                        <i class="fab fa-github"></i>
+                        View Repository
+                    </a>
                 </div>
             </div>
         </div>
@@ -285,6 +386,14 @@
                     <div class="command-syntax">Playlist URL</div>
                     <div class="command-description">Send JioSaavn playlist URL to download all songs</div>
                 </div>
+                <div class="command-card">
+                    <div class="command-syntax">Album URL</div>
+                    <div class="command-description">Send JioSaavn album URL to download all songs</div>
+                </div>
+                <div class="command-card">
+                    <div class="command-syntax">Artist Name</div>
+                    <div class="command-description">Search for artist and download their top songs</div>
+                </div>
             </div>
         </div>
     </section>
@@ -321,6 +430,14 @@
                     <p>Created and maintained by Ashlynn</p>
                     <a href="https://t.me/Ashlynn_Repository" class="contact-link">Contact Developer</a>
                 </div>
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Documentation</h3>
+                    <p>Comprehensive guides and API documentation</p>
+                    <a href="https://jiosavanwave.vercel.app/docs" class="contact-link">View Docs</a>
+                </div>
             </div>
         </div>
     </section>
@@ -334,10 +451,11 @@
                         <i class="fas fa-music"></i>
                         <span>JioSaavn Bot</span>
                     </div>
-                    <p>The ultimate Telegram bot for downloading high-quality music from JioSaavn.</p>
+                    <p>The ultimate Telegram bot for downloading high-quality music from JioSaavn with advanced features and real-time analytics.</p>
                     <div class="social-links">
                         <a href="https://t.me/Ashlynn_Repository"><i class="fab fa-telegram"></i></a>
                         <a href="https://github.com/Itz-Ashlynn/jiosavanbot"><i class="fab fa-github"></i></a>
+                        <a href="https://jiosavanwave.vercel.app/docs"><i class="fas fa-book"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -346,7 +464,7 @@
                         <li><a href="#home">Home</a></li>
                         <li><a href="#features">Features</a></li>
                         <li><a href="#stats">Statistics</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="#api">API Docs</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -355,7 +473,7 @@
                         <li><a href="https://github.com/Itz-Ashlynn/jiosavanbot">Source Code</a></li>
                         <li><a href="https://t.me/Ashlynn_Repository">Support</a></li>
                         <li><a href="#commands">Commands</a></li>
-                        <li><a href="/api/docs">API Docs</a></li>
+                        <li><a href="/api/stats">Live Stats</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -364,11 +482,17 @@
                         <li><a href="#privacy">Privacy Policy</a></li>
                         <li><a href="#terms">Terms of Service</a></li>
                         <li><a href="#disclaimer">Disclaimer</a></li>
+                        <li><a href="LICENSE">License</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 JioSaavn Bot. Created by <a href="https://t.me/Ashlynn_Repository">Ashlynn</a>. All rights reserved.</p>
+                <div class="footer-stats">
+                    <span><i class="fas fa-users"></i> <span class="loading-stat" data-api="total_users">Loading...</span> Users</span>
+                    <span><i class="fas fa-music"></i> 50,000+ Songs</span>
+                    <span><i class="fas fa-clock"></i> 99.9% Uptime</span>
+                </div>
             </div>
         </div>
     </footer>

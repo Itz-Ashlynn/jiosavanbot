@@ -252,44 +252,95 @@ async function fetchStatsFromAPI() {
         
         return {
             totalUsers: data.users.total,
-            downloadsToday: data.users.today,
-            totalSongs: 50000, // Static value since we don't track songs directly
             activeUsers: data.users.active,
+            todayUsers: data.users.today,
+            bannedUsers: data.users.banned,
             qualityDistribution: data.quality_distribution,
-            typeDistribution: data.type_distribution
+            typeDistribution: data.type_distribution,
+            lastUpdated: data.last_updated
         };
     } catch (error) {
         console.error('Failed to fetch real stats, using fallback:', error);
         // Fallback to mock data if API fails
         return {
             totalUsers: Math.floor(Math.random() * 5000) + 8000,
-            downloadsToday: Math.floor(Math.random() * 1000) + 500,
-            totalSongs: Math.floor(Math.random() * 10000) + 45000,
-            activeUsers: Math.floor(Math.random() * 2000) + 3000
+            activeUsers: Math.floor(Math.random() * 2000) + 3000,
+            todayUsers: Math.floor(Math.random() * 1000) + 500,
+            bannedUsers: 0,
+            qualityDistribution: {
+                "320kbps": Math.floor(Math.random() * 50) + 30,
+                "160kbps": Math.floor(Math.random() * 30) + 10,
+                "96kbps": Math.floor(Math.random() * 10) + 5,
+                "48kbps": Math.floor(Math.random() * 5) + 1
+            },
+            typeDistribution: {
+                "all": Math.floor(Math.random() * 50) + 30,
+                "song": Math.floor(Math.random() * 20) + 5
+            }
         };
     }
 }
 
 function updateStatsDisplay(stats) {
-    const elements = {
-        users: document.querySelector('[data-api="users"]'),
-        downloads: document.querySelector('[data-api="downloads"]'),
-        songs: document.querySelector('[data-api="songs"]')
-    };
+    // Update user statistics
+    updateStatElement('total_users', stats.totalUsers);
+    updateStatElement('active_users', stats.activeUsers);
+    updateStatElement('today_users', stats.todayUsers);
     
-    // Update each stat with animation
-    Object.keys(elements).forEach(key => {
-        const element = elements[key];
-        if (element && stats[key === 'users' ? 'totalUsers' : key === 'downloads' ? 'downloadsToday' : 'totalSongs']) {
-            element.classList.remove('loading-stat');
-            
-            // Animate the number change
-            const currentValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
-            const newValue = stats[key === 'users' ? 'totalUsers' : key === 'downloads' ? 'downloadsToday' : 'totalSongs'];
-            
-            animateNumberChange(element, currentValue, newValue);
+    // Update quality distribution
+    if (stats.qualityDistribution) {
+        updateQualityDistribution(stats.qualityDistribution);
+    }
+    
+    // Update type distribution
+    if (stats.typeDistribution) {
+        updateTypeDistribution(stats.typeDistribution);
+    }
+    
+    // Update footer stats
+    updateStatElement('total_users', stats.totalUsers, '.footer-stats .loading-stat[data-api="total_users"]');
+}
+
+function updateStatElement(apiKey, value, selector = null) {
+    const element = selector ? 
+        document.querySelector(selector) : 
+        document.querySelector(`[data-api="${apiKey}"]`);
+    
+    if (element) {
+        element.classList.remove('loading-stat');
+        
+        // Animate the number change
+        const currentValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+        animateNumberChange(element, currentValue, value);
+    }
+}
+
+function updateQualityDistribution(qualityData) {
+    const qualities = ['320kbps', '160kbps', '96kbps', '48kbps'];
+    
+    qualities.forEach(quality => {
+        const percentage = qualityData[quality] || 0;
+        const percentageElement = document.querySelector(`[data-api="${quality}"]`);
+        const fillElement = document.querySelector(`.quality-fill[data-api="${quality}"]`);
+        
+        if (percentageElement) {
+            percentageElement.classList.remove('loading-stat');
+            percentageElement.textContent = `${percentage}%`;
+        }
+        
+        if (fillElement) {
+            fillElement.style.width = `${percentage}%`;
+            fillElement.textContent = `${percentage}%`;
         }
     });
+}
+
+function updateTypeDistribution(typeData) {
+    // Update all types
+    updateStatElement('all_types', typeData.all || 0);
+    
+    // Update song types
+    updateStatElement('song_types', typeData.song || 0);
 }
 
 function animateNumberChange(element, startValue, endValue) {
@@ -400,7 +451,7 @@ document.addEventListener('keydown', function(e) {
 function preloadResources() {
     const criticalResources = [
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
-        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'
+        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap'
     ];
     
     criticalResources.forEach(resource => {

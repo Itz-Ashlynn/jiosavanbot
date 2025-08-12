@@ -71,6 +71,12 @@ body {
     font-weight: 400;
 }
 
+.loading-content p {
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
 .music-waves {
     display: flex;
     justify-content: center;
@@ -665,6 +671,60 @@ section {
     color: var(--primary-color);
 }
 
+/* Type Distribution Chart */
+.type-chart {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.type-item {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: var(--transition-smooth);
+}
+
+.type-item:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 30px var(--shadow-color);
+}
+
+.type-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.type-content {
+    flex: 1;
+}
+
+.type-label {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.type-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 /* Commands Section */
 .commands {
     background: var(--background-card);
@@ -705,6 +765,107 @@ section {
 .command-description {
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+/* API Documentation Section */
+.api-docs {
+    padding: 5rem 0;
+    background: var(--background-card);
+}
+
+.api-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.api-card {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2.5rem;
+    text-align: center;
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.api-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, var(--secondary-color) 0%, transparent 70%);
+    opacity: 0;
+    transition: var(--transition-smooth);
+    transform: scale(0);
+}
+
+.api-card:hover::before {
+    opacity: 0.05;
+    transform: scale(1);
+}
+
+.api-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--secondary-color);
+    box-shadow: 0 20px 40px var(--shadow-color);
+}
+
+.api-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: var(--text-primary);
+    transition: var(--transition-bounce);
+    position: relative;
+    z-index: 2;
+}
+
+.api-card:hover .api-icon {
+    transform: scale(1.1) rotate(-10deg);
+}
+
+.api-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    position: relative;
+    z-index: 2;
+}
+
+.api-card p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.api-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition-smooth);
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.api-link:hover {
+    color: #ee5a24;
+    transform: translateX(5px);
 }
 
 /* Contact Section */
@@ -895,6 +1056,26 @@ section {
     text-decoration: none;
 }
 
+.footer-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.footer-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.footer-stats i {
+    color: var(--primary-color);
+}
+
 /* Back to Top Button */
 .back-to-top {
     position: fixed;
@@ -975,6 +1156,19 @@ section {
     
     .stat-number {
         font-size: 2rem;
+    }
+    
+    .api-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .type-chart {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-stats {
+        flex-direction: column;
+        gap: 1rem;
     }
     
     .features-grid,
