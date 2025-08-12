@@ -56,7 +56,21 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
 
     title = html.unescape(response.get("title", ""))
     total_results = int(response.get("list_count", 0))
-    image_url = response.get("image", "").replace("150x150", "500x500")
+    
+    # Handle image URL - different formats between APIs
+    image_url = ""
+    image_data = response.get("image", "")
+    if isinstance(image_data, str):
+        # Official API format - direct string
+        image_url = image_data.replace("150x150", "500x500") if image_data else ""
+    elif isinstance(image_data, list) and len(image_data) > 0:
+        # Fallback API format - list of image objects
+        # Get the highest quality image (usually the last one)
+        image_url = image_data[-1].get("url", "") if image_data[-1] else ""
+    elif isinstance(image_data, dict):
+        # Some APIs return image as dict
+        image_url = image_data.get("url", "")
+    
     perma_url = response.get("perma_url", "")
     more_info = response.get("more_info", {})
     followers = int(more_info.get("follower_count", 0))

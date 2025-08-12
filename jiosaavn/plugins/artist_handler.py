@@ -68,8 +68,21 @@ async def artist(client: Bot, callback: CallbackQuery):
     name = response.get("name")
     songs = response.get("topSongs")
     total_results = response.get("count", 0)
-    image_url = response.get("image")
-    image_url = image_url.replace("150x150", "500x500") if image_url else None
+    
+    # Handle image URL - different formats between APIs
+    image_url = None
+    image_data = response.get("image")
+    if isinstance(image_data, str):
+        # Official API format - direct string
+        image_url = image_data.replace("150x150", "500x500") if image_data else None
+    elif isinstance(image_data, list) and len(image_data) > 0:
+        # Fallback API format - list of image objects
+        # Get the highest quality image (usually the last one)
+        image_url = image_data[-1].get("url", "") if image_data[-1] else None
+    elif isinstance(image_data, dict):
+        # Some APIs return image as dict
+        image_url = image_data.get("url", "")
+    
     artist_url = response.get("urls", {}).get("songs")
     follower_count = int(response.get("follower_count", "0"))
     dob = response.get("dob")

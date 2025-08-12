@@ -424,6 +424,14 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         except Exception as e:
             logger.debug(f"Could not delete audio file {audio}: {e}")
         
+        # Delete the thumbnail file to save space
+        try:
+            if os.path.exists(thumbnail_location):
+                os.remove(thumbnail_location)
+                logger.debug(f"Deleted thumbnail file: {thumbnail_location}")
+        except Exception as e:
+            logger.debug(f"Could not delete thumbnail file {thumbnail_location}: {e}")
+        
         # Delete the temporary message after successful upload
         try:
             await msg.delete()
@@ -434,6 +442,21 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         logger.error(f"Error uploading song {title}: {e}")
         await safe_edit(msg, f"Failed to upload {title}: {str(e)}")
     finally:
+        # Clean up individual files first
+        try:
+            if os.path.exists(audio):
+                os.remove(audio)
+                logger.debug(f"Cleaned up audio file: {audio}")
+        except Exception as e:
+            logger.debug(f"Could not clean up audio file {audio}: {e}")
+        
+        try:
+            if os.path.exists(thumbnail_location):
+                os.remove(thumbnail_location)
+                logger.debug(f"Cleaned up thumbnail file: {thumbnail_location}")
+        except Exception as e:
+            logger.debug(f"Could not clean up thumbnail file {thumbnail_location}: {e}")
+        
         # Clean up download directory
         try:
             if os.path.exists(download_dir):

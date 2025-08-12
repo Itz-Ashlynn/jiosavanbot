@@ -60,7 +60,21 @@ async def handle_song_callback(client: Bot, callback: CallbackQuery):
     release_date = more_info.get("release_date")
     release_year = song_data.get("year")
     album_url = more_info.get("album_url", "")
-    image_url = song_data.get("image", "").replace("150x150", "500x500")
+    
+    # Handle image URL - different formats between APIs
+    image_url = ""
+    image_data = song_data.get("image", "")
+    if isinstance(image_data, str):
+        # Official API format - direct string
+        image_url = image_data.replace("150x150", "500x500") if image_data else ""
+    elif isinstance(image_data, list) and len(image_data) > 0:
+        # Fallback API format - list of image objects
+        # Get the highest quality image (usually the last one)
+        image_url = image_data[-1].get("url", "") if image_data[-1] else ""
+    elif isinstance(image_data, dict):
+        # Some APIs return image as dict
+        image_url = image_data.get("url", "")
+    
     song_url = song_data.get('perma_url', f"https://jiosaavn.com/songs/{formatted_title}/{song_id}")
 
     text_data = [
