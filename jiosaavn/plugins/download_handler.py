@@ -203,16 +203,46 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
         artists = more_info["artistMap"]["artists"]
     elif song_data.get("artists"):
         # Fallback API format
-        artists = song_data["artists"]
+        artists_data = song_data["artists"]
+        if isinstance(artists_data, list):
+            artists = artists_data
+        elif isinstance(artists_data, dict):
+            # Artists is a dict - convert to list format
+            # Check if it has common artist list keys
+            if "primary_artists" in artists_data:
+                artists = artists_data.get("primary_artists", [])
+            elif "all" in artists_data:
+                artists = artists_data.get("all", [])
+            else:
+                # Fallback: treat the dict as a single artist entry
+                artists = [artists_data]
+    
+    # Ensure artists is always a list
+    if not isinstance(artists, list):
+        artists = []
     
     def get_artist_by_role(role: str) -> str:
-        return ", ".join(artist.get("name") for artist in artists if artist.get("role") == role)
+        artist_names = []
+        for artist in artists:
+            if isinstance(artist, dict) and artist.get("role") == role:
+                name = artist.get("name", "")
+                if name:
+                    artist_names.append(name)
+        return ", ".join(artist_names)
     
     # Extract performers/singers
     singers = get_artist_by_role("singer") or get_artist_by_role("primary_artists")
     if not singers and artists:
         # Fallback: use first artist or all artists
-        singers = ", ".join(artist.get("name", "") for artist in artists[:3])  # Limit to first 3
+        artist_names = []
+        for artist in artists[:3]:  # Limit to first 3
+            if isinstance(artist, dict):
+                name = artist.get("name", "")
+                if name:
+                    artist_names.append(name)
+            elif isinstance(artist, str):
+                artist_names.append(artist)
+        singers = ", ".join(artist_names)
     
     # Extract release info
     release_date = more_info.get("release_date") or song_data.get("releaseDate")
