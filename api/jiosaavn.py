@@ -32,23 +32,36 @@ class JioSaavnFallback:
                     response.raise_for_status()
                     
                     response_data = await response.json()
-                    logger.info(f"✅ Fallback API Success: {response_data.get('success', False)}")
                     
-                    if response_data.get('success') and response_data.get('data'):
-                        logger.info(f"📊 Data keys: {list(response_data['data'].keys())}")
+                    # Handle both list and dict responses
+                    if isinstance(response_data, list):
+                        # Direct list response (like songs API)
+                        logger.info(f"✅ Fallback API Success: Direct list with {len(response_data)} items")
+                        return {"success": True, "data": response_data}
+                    elif isinstance(response_data, dict):
+                        # Standard dict response
+                        logger.info(f"✅ Fallback API Success: {response_data.get('success', False)}")
                         
-                        # Log specific info based on data type
-                        data = response_data['data']
-                        if 'songs' in data:
-                            logger.info(f"🎵 Songs found: {len(data.get('songs', []))}")
-                        if 'topSongs' in data:
-                            logger.info(f"🎵 Top songs found: {len(data.get('topSongs', []))}")
-                        if 'name' in data:
-                            logger.info(f"📝 Name: {data.get('name')}")
+                        if response_data.get('success') and response_data.get('data'):
+                            data = response_data['data']
+                            # Log specific info based on data type
+                            if isinstance(data, dict):
+                                logger.info(f"📊 Data keys: {list(data.keys())}")
+                                if 'songs' in data:
+                                    logger.info(f"🎵 Songs found: {len(data.get('songs', []))}")
+                                if 'topSongs' in data:
+                                    logger.info(f"🎵 Top songs found: {len(data.get('topSongs', []))}")
+                                if 'name' in data:
+                                    logger.info(f"📝 Name: {data.get('name')}")
+                            elif isinstance(data, list):
+                                logger.info(f"📊 Data is list with {len(data)} items")
+                        else:
+                            logger.warning(f"⚠️ Fallback API returned unsuccessful response")
+                        
+                        return response_data
                     else:
-                        logger.warning(f"⚠️ Fallback API returned unsuccessful response")
-                    
-                    return response_data
+                        logger.warning(f"⚠️ Unexpected response type: {type(response_data)}")
+                        return None
                     
         except Exception as e:
             logger.error(f"❌ Fallback API request failed: {e}")
@@ -110,6 +123,20 @@ class JioSaavnFallback:
             response = await self._request_data(url, params)
             if response and response.get('success'):
                 return response
+        
+        # For alphanumeric artist IDs, try to construct artist URL
+        if artist_id and not artist_id.isdigit():
+            # Try with constructed URL for alphanumeric IDs
+            try:
+                constructed_url = f"https://www.jiosaavn.com/artist/songs/{artist_id}"
+                params = {'link': constructed_url, 'page': page, 'songCount': song_count, 'albumCount': album_count, 'sortBy': 'popularity', 'sortOrder': 'desc'}
+                # Remove None values
+                params = {k: v for k, v in params.items() if v is not None}
+                response = await self._request_data(url, params)
+                if response and response.get('success'):
+                    return response
+            except Exception:
+                pass
         
         # If artist_id looks like a numeric ID, use it directly
         if artist_id and artist_id.isdigit():
