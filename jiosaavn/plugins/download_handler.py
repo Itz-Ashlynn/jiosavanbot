@@ -42,12 +42,18 @@ async def download(client: Bot, message: Message|CallbackQuery):
         page_no = 1
         album_id = item_id if search_type == "album" else None
         playlist_id = item_id if search_type == "playlist" else None
+        
+        # Get original URL for fallback API
+        original_url = None
+        if isinstance(message, Message):
+            original_url = message.text
 
         while True:
             response = await Jiosaavn().get_playlist_or_album(
                 album_id=album_id, 
                 playlist_id=playlist_id, 
-                page_no=page_no
+                page_no=page_no,
+                original_url=original_url
             )
             
             if not response or not response.get("list"):

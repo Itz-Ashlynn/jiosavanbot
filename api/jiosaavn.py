@@ -30,16 +30,28 @@ class JioSaavnFallback:
             logger.debug(f"Fallback API request failed: {e}")
             return None
     
-    async def get_playlist(self, playlist_id: str) -> Optional[Dict[str, Any]]:
+    async def get_playlist(self, playlist_id: str, playlist_url: str = None) -> Optional[Dict[str, Any]]:
         """Get playlist from fallback API"""
         url = f"{self.BASE_URL}/api/playlists"
-        params = {'id': playlist_id}
+        
+        # Try with URL first if provided, as it seems more reliable
+        if playlist_url:
+            params = {'link': playlist_url, 'page': 0, 'limit': 50}
+        else:
+            params = {'id': playlist_id, 'page': 0, 'limit': 50}
+            
         return await self._request_data(url, params)
     
-    async def get_album(self, album_id: str) -> Optional[Dict[str, Any]]:
+    async def get_album(self, album_id: str, album_url: str = None) -> Optional[Dict[str, Any]]:
         """Get album from fallback API"""
         url = f"{self.BASE_URL}/api/albums"
-        params = {'id': album_id}
+        
+        # Try with URL first if provided, as it seems more reliable
+        if album_url:
+            params = {'link': album_url, 'page': 0, 'limit': 50}
+        else:
+            params = {'id': album_id, 'page': 0, 'limit': 50}
+            
         return await self._request_data(url, params)
     
     async def get_artist_songs(self, artist_id: str, page: int = 1) -> Optional[Dict[str, Any]]:
@@ -248,6 +260,8 @@ class Jiosaavn:
 
         # Try fallback API for better artist support
         if artist_id:
+            import logging
+            logger = logging.getLogger(__name__)
             logger.debug(f"Trying fallback API for artist {artist_id}")
             fallback_response = await self.fallback.get_artist_songs(artist_id, page_no)
             
@@ -318,7 +332,8 @@ class Jiosaavn:
         album_id: Optional[str] = None,
         playlist_id: Optional[str] = None,
         page_no: Optional[int] = 1,
-        page_size: Optional[int] = 20
+        page_size: Optional[int] = 20,
+        original_url: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Retrieves the details of a playlist or album based on the provided ID.
@@ -367,42 +382,54 @@ class Jiosaavn:
             logger.debug(f"Trying fallback API for {search_type} {token}")
             
             if search_type == "playlist":
-                fallback_response = await self.fallback.get_playlist(token)
-                if fallback_response and fallback_response.get('data'):
+                fallback_response = await self.fallback.get_playlist(token, original_url)
+                if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                     # Convert fallback format to expected format
                     data = fallback_response['data']
                     songs = data.get('songs', [])
                     
+                    # Extract image URL properly
+                    image_url = ''
+                    if data.get('image') and isinstance(data['image'], list) and len(data['image']) > 0:
+                        # Get the highest quality image
+                        image_url = data['image'][-1].get('url', '')
+                    
                     response = {
                         "id": token,
                         "title": data.get('name', 'Unknown Playlist'),
-                        "image": data.get('image', [{'quality': '500x500', 'link': ''}])[-1].get('link', ''),
+                        "image": image_url,
                         "list": songs,
-                        "list_count": len(songs),
-                        "perma_url": f"https://www.jiosaavn.com/featured/{token}",
+                        "list_count": data.get('songCount', len(songs)),
+                        "perma_url": data.get('url', f"https://www.jiosaavn.com/featured/{token}"),
                         "more_info": {
-                            "follower_count": data.get('followerCount', 0)
+                            "follower_count": 0  # Not provided in this API
                         }
                     }
                     logger.debug(f"Fallback API returned playlist with {len(songs)} songs")
             
             elif search_type == "album":
-                fallback_response = await self.fallback.get_album(token)
-                if fallback_response and fallback_response.get('data'):
+                fallback_response = await self.fallback.get_album(token, original_url)
+                if fallback_response and fallback_response.get('success') and fallback_response.get('data'):
                     # Convert fallback format to expected format
                     data = fallback_response['data']
                     songs = data.get('songs', [])
                     
+                    # Extract image URL properly
+                    image_url = ''
+                    if data.get('image') and isinstance(data['image'], list) and len(data['image']) > 0:
+                        # Get the highest quality image
+                        image_url = data['image'][-1].get('url', '')
+                    
                     response = {
                         "id": token,
                         "title": data.get('name', 'Unknown Album'),
-                        "image": data.get('image', [{'quality': '500x500', 'link': ''}])[-1].get('link', ''),
+                        "image": image_url,
                         "list": songs,
-                        "list_count": len(songs),
-                        "perma_url": f"https://www.jiosaavn.com/album/{token}",
+                        "list_count": data.get('songCount', len(songs)),
+                        "perma_url": data.get('url', f"https://www.jiosaavn.com/album/{token}"),
                         "year": data.get('releaseDate', '').split('-')[0] if data.get('releaseDate') else '',
                         "more_info": {
-                            "album_url": f"https://www.jiosaavn.com/album/{token}"
+                            "album_url": data.get('url', f"https://www.jiosaavn.com/album/{token}")
                         }
                     }
                     logger.debug(f"Fallback API returned album with {len(songs)} songs")
