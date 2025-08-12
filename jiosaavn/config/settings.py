@@ -15,4 +15,6 @@ BOT_COMMANDS = (
 
 DATABASE_URL = getenv("DATABASE_URL", None)
 HOST = getenv("HOST", "0.0.0.0")
-PORT = int(getenv("PORT", "80"))
+# Allow custom port via environment variable, default to 8080 for development, 80 for production
+DEFAULT_PORT = "8080" if getenv("RENDER") is None else "80"
+PORT = int(getenv("PORT", DEFAULT_PORT))

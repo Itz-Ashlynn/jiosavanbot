@@ -103,7 +103,7 @@ async def start_web(bot=None):
     runner = AppRunner(web_app)
     await runner.setup()
     await TCPSite(runner, HOST, PORT).start()
-    print("Web server started!!")
+    print(f"Web server started on {HOST}:{PORT}")
     return runner
 
 async def stop_web(runner: AppRunner):

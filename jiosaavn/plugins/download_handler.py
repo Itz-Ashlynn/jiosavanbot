@@ -154,7 +154,15 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
             async with aiofiles.open(thumbnail_location, "wb") as file:
                 await file.write(await response.read())
 
-    audio = await Jiosaavn().download_song(song_id=song_id, bitrate=bitrate, download_location=file_name)
+    try:
+        audio = await Jiosaavn().download_song(song_id=song_id, bitrate=bitrate, download_location=file_name)
+        if not audio or not os.path.exists(file_name):
+            await safe_edit(msg, f"Failed to download {title}")
+            return
+    except Exception as e:
+        logger.error(f"Error downloading song {title}: {e}")
+        await safe_edit(msg, f"Failed to download {title}: {str(e)}")
+        return
     try:
         await msg.edit(f"__📤 Uploading {title}__")
     except Exception as e:
@@ -171,19 +179,39 @@ async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Messag
     )
 
     try:
+        # Get the reply_to_message_id safely
+        reply_to_id = None
+        if msg.reply_to_message:
+            reply_to_id = msg.reply_to_message.id
+        elif isinstance(message, Message) and message.reply_to_message:
+            reply_to_id = message.reply_to_message.id
+        elif isinstance(message, Message):
+            reply_to_id = message.id
+        
+        # Validate file before uploading
+        if not os.path.exists(audio):
+            await safe_edit(msg, f"Audio file not found for {title}")
+            return
+        
+        # Check file size (Telegram has 50MB limit for bots)
+        file_size = os.path.getsize(audio)
+        if file_size > 50 * 1024 * 1024:  # 50MB
+            await safe_edit(msg, f"File too large to upload: {title} ({file_size / 1024 / 1024:.1f}MB)")
+            return
+        
         song_file = await client.send_audio(
             chat_id=message.from_user.id,
             audio=audio,
             caption=caption,
             duration=duration,
             title=title,
-            thumb=thumbnail_location,
+            thumb=thumbnail_location if os.path.exists(thumbnail_location) else None,
             performer=singers,
-            reply_to_message_id=msg.reply_to_message.id,
+            reply_to_message_id=reply_to_id,
         )
         
         if not song_file:
-            await safe_edit(msg, f"Failed to upload {title}")
+            await safe_edit(msg, f"Failed to upload {title} - upload returned None")
             return
         
         # Update database

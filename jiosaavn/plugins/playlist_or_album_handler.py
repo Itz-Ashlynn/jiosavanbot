@@ -4,6 +4,7 @@ import traceback
 
 from api.jiosaavn import Jiosaavn
 from jiosaavn.bot import Bot
+from jiosaavn.utils import safe_edit
 
 from humanfriendly import format_timespan
 from pyrogram import Client, filters
@@ -28,7 +29,7 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
         logger.debug(f"Playlist/Album response: {response}")
         
         if not response:
-            return await callback.message.edit(f"**The requested {search_type} could not be found.**\n\n"
+            return await safe_edit(callback.message, f"**The requested {search_type} could not be found.**\n\n"
                                              f"This might be due to:\n"
                                              f"• Invalid {search_type} ID\n"
                                              f"• {search_type.title()} removed from JioSaavn\n"
@@ -37,7 +38,7 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
         # Check for songs in different possible fields
         songs = response.get("list") or response.get("songs") or []
         if not songs:
-            return await callback.message.edit(f"**The {search_type} exists but contains no songs.**\n\n"
+            return await safe_edit(callback.message, f"**The {search_type} exists but contains no songs.**\n\n"
                                              f"The {search_type} might be empty or the songs are not available in your region.")
         
         # Ensure 'list' field exists for compatibility with rest of code
@@ -47,11 +48,11 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
     except RuntimeError as e:
         logger.error(f"RuntimeError in playlist/album handler: {e}")
         traceback.print_exc()
-        return await callback.message.edit("Connection refused by JioSaavn API. Please try again.")
+        return await safe_edit(callback.message, "Connection refused by JioSaavn API. Please try again.")
     except Exception as e:
         logger.error(f"Unexpected error in playlist/album handler: {e}")
         traceback.print_exc()
-        return await callback.message.edit(f"An unexpected error occurred while fetching the {search_type}. Please try again.")
+        return await safe_edit(callback.message, f"An unexpected error occurred while fetching the {search_type}. Please try again.")
 
     title = html.unescape(response.get("title", ""))
     total_results = int(response.get("list_count", 0))
@@ -101,4 +102,4 @@ async def playlist_or_album(client: Bot, callback: CallbackQuery):
     )
     text = "\n\n".join(filter(None, text_data))
 
-    await callback.message.edit(text, reply_markup=InlineKeyboardMarkup(buttons))
+    await safe_edit(callback.message, text, reply_markup=InlineKeyboardMarkup(buttons))
