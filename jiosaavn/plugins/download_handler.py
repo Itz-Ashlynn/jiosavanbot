@@ -38,31 +38,43 @@ async def download(client: Bot, message: Message|CallbackQuery):
 
     if search_type == "song":
         await download_tool(client, message, msg, item_id)
-    elif search_type in ("album", "playlist"):
+    elif search_type in ("album", "playlist", "artist"):
         page_no = 1
         album_id = item_id if search_type == "album" else None
         playlist_id = item_id if search_type == "playlist" else None
+        artist_id = item_id if search_type == "artist" else None
         
         # Get original URL for fallback API
         original_url = None
         if isinstance(message, Message):
             original_url = message.text
 
-        # Get playlist/album data
+        # Get playlist/album/artist data
         try:
             jiosaavn = Jiosaavn()
-            response = await jiosaavn.get_playlist_or_album(
-                album_id=album_id, 
-                playlist_id=playlist_id, 
-                page_no=page_no,
-                original_url=original_url
-            )
+            
+            if search_type == "artist":
+                response = await jiosaavn.get_artist(artist_id=artist_id, page_no=page_no)
+                if response and response.get("topSongs"):
+                    # Convert artist response to common format
+                    response = {
+                        "list": response["topSongs"],
+                        "title": response.get("name", "Unknown Artist"),
+                        "list_count": response.get("count", len(response["topSongs"]))
+                    }
+            else:
+                response = await jiosaavn.get_playlist_or_album(
+                    album_id=album_id, 
+                    playlist_id=playlist_id, 
+                    page_no=page_no,
+                    original_url=original_url
+                )
             
             if not response or not response.get("list"):
                 await safe_edit(msg, f"**No songs found in this {search_type}.**\n\nThis might be due to:\n• Invalid {search_type} ID\n• {search_type.title()} removed from JioSaavn\n• Temporary API issues")
                 return
             
-            # Download all songs from the playlist/album
+            # Download all songs from the playlist/album/artist
             songs = response["list"]
             total_songs = len(songs)
             
@@ -83,12 +95,17 @@ async def download(client: Bot, message: Message|CallbackQuery):
             download_failed = 0
             
             for i, song in enumerate(songs, 1):
-                song_url = song.get("perma_url", "")
-                if not song_url:
+                # Try to get song ID from multiple possible fields
+                song_id = song.get("id")
+                if not song_id:
+                    song_url = song.get("perma_url", "")
+                    if song_url and "/" in song_url:
+                        song_id = song_url.rsplit("/", 1)[-1]
+                
+                if not song_id:
+                    logger.warning(f"Could not extract song ID from song: {song}")
                     download_failed += 1
                     continue
-                    
-                song_id = song_url.rsplit("/", 1)[-1]
                 
                 # Update progress
                 progress_msg = f"**Downloading song {i}/{total_songs}...**"
@@ -118,7 +135,7 @@ async def download(client: Bot, message: Message|CallbackQuery):
             logger.error(f"Error processing {search_type}: {e}")
             await safe_edit(msg, f"**❌ Error processing {search_type}: {str(e)}**")
     else:
-        await safe_edit(msg, "Artists and Podcast upload not supported.")
+        await safe_edit(msg, "Podcast upload not supported.")
         return
 
 async def download_tool(client: Bot, message: Message|CallbackQuery, msg: Message, song_id: str):

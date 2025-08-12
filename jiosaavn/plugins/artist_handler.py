@@ -80,7 +80,12 @@ async def artist(client: Bot, callback: CallbackQuery):
             song_title = song.get("title", "")
             song_title = html.unescape(song_title)
             button_label = f"🎙 {song_title}"
-            song_id = song.get("perma_url", "").rsplit("/", 1)[1]
+            
+            # Try to get song ID from multiple possible fields
+            song_id = song.get("id")
+            if not song_id and song.get("perma_url"):
+                song_id = song.get("perma_url", "").rsplit("/", 1)[1]
+            
             if song_id:
                 # Create proper callback data for songs with back navigation
                 if back_type:
@@ -88,7 +93,8 @@ async def artist(client: Bot, callback: CallbackQuery):
                 else:
                     callback_data = f"song#{song_id}#{artist_id}#artist"
                 buttons.append([InlineKeyboardButton(button_label, callback_data=callback_data)])
-        except (IndexError, AttributeError):
+        except (IndexError, AttributeError) as e:
+            logger.debug(f"Error processing artist song: {e}")
             pass
 
     # Add navigation buttons only if we have multiple pages
